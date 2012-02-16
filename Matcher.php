@@ -1,6 +1,15 @@
 <?php
 
+/**
+ * This file is part of the Atrox toolbox
+ *
+ * Copyright (c) 2012, Karel Čížek (kaja47@k47.cz)
+ *
+ * @license New BSD License
+ */
+
 namespace Atrox;
+
 
 class Matcher {
 
