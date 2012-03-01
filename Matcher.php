@@ -23,6 +23,8 @@ class Matcher {
   function processDom ($dom)  { return $this($dom); }
 
 
+  function fromHtml() { $self = $this; return function($html) use($self) { return $self->processHtml($html); }; }
+  function fromXml()  { $self = $this; return function($html) use($self) { return $self->processXml($html); }; }
   static function nodeValue($n) { return $n instanceof \DOMNode ? $n->nodeValue : $n; }
 
 
