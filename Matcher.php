@@ -18,7 +18,7 @@ class Matcher {
   function __construct($f) { $this->f = $f; }
   function __invoke()      { return call_user_func_array($this->f, func_get_args()); }
 
-  function processHtml($html) { $dom = new \DOMDocument(); $dom->loadHTML($html); return $this($dom); }
+  function processHtml($html) { $dom = new \DOMDocument(); @$dom->loadHTML($html); return $this($dom); }
   function processXml ($xml)  { $dom = new \DOMDocument(); $dom->loadXML($xml);   return $this($dom); }
   function processDom ($dom)  { return $this($dom); }
 
