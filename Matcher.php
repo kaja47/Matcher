@@ -25,21 +25,25 @@ class Matcher {
 
   function fromHtml() { $self = $this; return function($html) use($self) { return $self->processHtml($html); }; }
   function fromXml()  { $self = $this; return function($html) use($self) { return $self->processXml($html); }; }
-  static function nodeValue($n) { return $n instanceof \DOMNode ? $n->nodeValue : $n; }
 
 
-  static function multi($basePath, array $paths = null, $extractFunc = 'Atrox\Matcher::nodeValue') {
-    return new Matcher(function($dom, $contextNode = null) use($basePath, $paths, $extractFunc) {
+  static function defaultExtractor($n) { return $n instanceof \DOMNode ? $n->nodeValue : $n; }
+
+
+  // defaultExtractor == null => use outer extractor
+  static function multi($basePath, array $paths = null, $defaultExtractor = null) {
+    return new Matcher(function($dom, $contextNode = null, $extractor = null) use($basePath, $paths, $defaultExtractor) {
       $xpath = new \DOMXpath($dom);
+      $extractor = Matcher::getExtractor($defaultExtractor, $extractor);
       $matches = $xpath->query($basePath, $contextNode);
 
       $return = array();
 
       if (!$paths) {
-        foreach ($matches as $m) $return[] = call_user_func_array($extractFunc, array($m, null));
+        foreach ($matches as $m) $return[] = call_user_func_array($extractor, array($m, null));
 
       } else {
-        foreach ($matches as $m) $return[] = Matcher::extractPaths($dom, $m, $paths, $extractFunc);
+        foreach ($matches as $m) $return[] = Matcher::extractPaths($dom, $m, $paths, $extractor);
       }
 
       return $return;
@@ -47,29 +51,44 @@ class Matcher {
   }
 
 
-  static function single($path, $extractFunc = 'Atrox\Matcher::nodeValue') {
-    return new Matcher(function ($dom, $contextNode = null) use($path, $extractFunc) {
+  static function single($path, $defaultExtractor = null) {
+    return new Matcher(function ($dom, $contextNode = null, $extractor = null) use($path, $defaultExtractor) {
       $xpath = new \DOMXpath($dom);
-      return Matcher::extractValue($extractFunc, $xpath->query($path, $contextNode));
+      $extractor = Matcher::getExtractor($defaultExtractor, $extractor);
+
+      if (is_array($path)) {
+        return Matcher::extractPaths($dom, $contextNode, $path, $extractor); // ???
+
+      } else {
+        return Matcher::extractValue($extractor, $xpath->query($path, $contextNode));
+      }
+
     });
   }
 
 
-  static function extractPaths($dom, $contextNode, $paths, $extractFunc) {
+  static function getExtractor($defaultExtractor, $extractor) {
+      if ($defaultExtractor !== null) return $defaultExtractor;
+      else if ($extractor === null)   return 'Atrox\Matcher::defaultExtractor'; // use default extractor
+      else                            return $extractor; // use outer extractor passed as explicit argument
+  }
+
+
+  static function extractPaths($dom, $contextNode, $paths, $extractor) {
     $xpath = new \DOMXpath($dom);
     $return = array();
 
     foreach ($paths as $key => $val) {
       if (is_array($val)) { // path => array()
         $n = $xpath->query($key, $contextNode)->item(0);
-        $r = ($n === null) ? array_fill_keys(array_keys($val), null) : self::extractPaths($dom, $n, $val, $extractFunc);
+        $r = ($n === null) ? array_fill_keys(array_keys($val), null) : self::extractPaths($dom, $n, $val, $extractor);
         $return = array_merge($return, $r);
 
       } elseif ($val instanceof Matcher || $val instanceof \Closure) { // key => multipath
-        $return[$key] = $val($dom, $contextNode);
+        $return[$key] = $val($dom, $contextNode, $extractor);
       
       } elseif (is_string($val)) { // key => path
-        $return[$key] = self::extractValue($extractFunc, $xpath->query($val, $contextNode));
+        $return[$key] = self::extractValue($extractor, $xpath->query($val, $contextNode));
 
       } else {
         throw new \Exception("Invalid path. Expected string, array or marcher, ".gettype($val)." given");
@@ -79,7 +98,7 @@ class Matcher {
     return $return;
   }
 
-  static function extractValue($extractFunc, $matches) {
-    return $matches->length === 0 ? null : call_user_func_array($extractFunc, array($matches->item(0)));
+  static function extractValue($extractor, $matches) {
+    return $matches->length === 0 ? null : call_user_func_array($extractor, array($matches->item(0)));
   }
 }
