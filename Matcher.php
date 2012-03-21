@@ -33,6 +33,15 @@ class Matcher {
   //static function defaultExtractor($ns) { $res = ''; foreach ($ns as $n) { $res .= $n->nodeValue; } return $res; }
 
 
+  /** Applies function $f to result of matcher (*after* extractor) */
+  function andThen($f) { // todo
+    $self = $this;
+    return new Matcher(function ($dom, $contextNode = null, $extractor = null) use($self, $f) {
+      return $f($self($dom, $contextNode, $extractor));
+    });
+  }
+
+
 
   /** defaultExtractor == null => use outer extractor
    *  @param string $basePath
