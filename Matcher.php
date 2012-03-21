@@ -42,6 +42,35 @@ class Matcher {
   }
 
 
+  /** regexes without named patterns will return numeric array without key 0
+   *  if result of previous matcher is array, it recursively applies regex on every element of that array
+   */
+  function regex($regex) {
+    $f = function ($res) use($regex, & $f) { // &$f for anonymous recursion
+      if ($res === null) {
+        return null;
+
+      } else if (is_string($res)) {
+        preg_match($regex, $res, $m);
+        if (count(array_filter(array_keys($m), 'is_string')) === 0) { // regex has no named subpatterns
+          unset($m[0]);
+        } else {
+          foreach ($m as $k => $v) if (is_int($k)) unset($m[$k]);
+        }
+        return $m;
+
+      } else if (is_array($res)) {
+        $return = array();
+        foreach ($res as $k => $v) $return[$k] = $f($v);
+        return $return;
+
+      } else {
+        throw new \Exception("Method `regex' should be applied only to Matcher::single which returns string or array of strings");
+      }
+    };
+    return $this->andThen($f);
+  }
+
 
   /** defaultExtractor == null => use outer extractor
    *  @param string $basePath
