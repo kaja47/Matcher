@@ -53,6 +53,13 @@ class Matcher {
     return empty($args) ? $m : $m->raw()->_deepMapNode(call_user_func_array('\Atrox\Matcher::single', $args));
   }
 
+  static function has($path) {
+    return Matcher::multi($path)->map(function ($xs) { return count($xs) > 0; });
+  }
+
+  static function count($path) {
+    return Matcher::multi($path)->map('count');
+  }
 
   static function loadHTML($html) {
     $dom = new \DOMDocument();
