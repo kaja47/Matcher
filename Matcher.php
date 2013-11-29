@@ -135,6 +135,7 @@ class Matcher {
 
   function asInt()   { return $this->map('intval'); }
   function asFloat() { return $this->map('floatval'); }
+  function first()   { return $this->map(function ($xs) { return reset($xs); }); } 
 
 
   /**
