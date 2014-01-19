@@ -1,0 +1,19 @@
+{
+    "name": "atrox/matcher",
+    "license": "New BSD",
+    "authors": [
+        {
+            "name": "Karel Čížek",
+            "email": "kaja47@k47.cz"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+
+    },
+    "autoload": {
+      "psr-4": {
+        "Atrox\\": ""
+      }
+    }
+}
