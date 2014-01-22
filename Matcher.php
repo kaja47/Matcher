@@ -62,14 +62,34 @@ class Matcher {
   }
 
   static function loadHTML($html) {
-    $dom = new \DOMDocument();
-    @$dom->loadHTML($html);
-    return simplexml_import_dom($dom);
+    $dom = @ \DOMDocument::loadHTML($html);
+    if ($dom === false) {
+      throw new \Exception("Invalid HTML document");
+    }
+    $simpleXML = @ simplexml_import_dom($dom);
+    if ($simpleXML === false) {
+      throw new \Exception("Can't import DOM document into SimpleXML");
+    }
+    return $simpleXML;
+  }
+
+  static function loadXML($xml) {
+    $simpleXML = @ simplexml_load_string($xml);
+    if ($simpleXML === false) {
+      throw new \Exception("Invalid XML document");
+    }
+    return $simpleXML;
   }
 
 
-  function fromHtml($ex = null) { $m = new Matcher(function($x) { return Matcher::loadHTML($x); }); return $m->map($this->withExtractor($ex)); }
-  function fromXml($ex = null)  { $m = new Matcher('simplexml_load_string');                        return $m->map($this->withExtractor($ex)); }
+  function fromHtml($ex = null) {
+    $m = new Matcher(function($html) { return Matcher::loadHTML($html); });
+    return $m->map($this->withExtractor($ex));
+  }
+  function fromXml($ex = null) {
+    $m = new Matcher(function ($xml) { return Matcher::loadXML($xml); });
+    return $m->map($this->withExtractor($ex));
+  }
 
 
   // extractors:
