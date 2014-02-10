@@ -33,7 +33,7 @@ class Matcher {
     $path = array_shift($args);
     $m = new Matcher(function($node, $extractor = null) use($path) {
       $extractor = Matcher::_getExtractor($extractor);
-      if (is_string($path)) return array_map($extractor, $node->xpath($path));
+      if (is_string($path)) return array_map($extractor, Matcher::_xpathAll($node, $path));
       else                  return Matcher::_evalPath($node, $path, $extractor);
     }, $path);
     return empty($args) ? $m : $m->raw()->_deepMapNode(call_user_func_array('\Atrox\Matcher::multi', $args));
@@ -61,10 +61,18 @@ class Matcher {
     return Matcher::multi($path)->map('count');
   }
 
-  static function loadHTML($html) {
+  function _filter($f) { return $this->raw()->map(function($ns) use ($f) { return array_filter($ns, $f); }); }
+  function _single($path) { return $this->raw()->_deepMapNode(Matcher::single($path)); }
+
+
+
+  static function loadHTML($html, $asDom) {
     $dom = @ \DOMDocument::loadHTML($html);
     if ($dom === false) {
       throw new \Exception("Invalid HTML document");
+    }
+    if ($asDom) {
+      return $dom;
     }
     $simpleXML = @ simplexml_import_dom($dom);
     if ($simpleXML === false) {
@@ -73,31 +81,39 @@ class Matcher {
     return $simpleXML;
   }
 
-  static function loadXML($xml) {
-    $simpleXML = @ simplexml_load_string($xml);
-    if ($simpleXML === false) {
-      throw new \Exception("Invalid XML document");
+  static function loadXML($xml, $asDom) {
+    if ($asDom) {
+      $dom = @ \DOMDocument::loadXML($xml);
+      if ($dom === false) {
+        throw new \Exception("Invalid XML document");
+      }
+      return $dom;
+
+    } else {
+      $simpleXML = @ simplexml_load_string($xml);
+      if ($simpleXML === false) {
+        throw new \Exception("Invalid XML document");
+      }
+      return $simpleXML;
     }
-    return $simpleXML;
   }
 
 
-  function fromHtml($ex = null) {
-    $m = new Matcher(function($html) { return Matcher::loadHTML($html); });
+  function fromHtml($ex = null, $asDom = true) {
+    $m = new Matcher(function ($html) use ($asDom) { return Matcher::loadHTML($html, $asDom); });
     return $m->map($this->withExtractor($ex));
   }
-  function fromXml($ex = null) {
-    $m = new Matcher(function ($xml) { return Matcher::loadXML($xml); });
+  function fromXml($ex = null, $asDom = true) {
+    $m = new Matcher(function ($xml) use ($asDom) { return Matcher::loadXML($xml, $asDom); });
     return $m->map($this->withExtractor($ex));
   }
 
 
   // extractors:
 
-  private static function nodeToString($n) { return dom_import_simplexml($n)->nodeValue; }
-  static function toString($n)  { return trim(preg_replace('~ +~', ' ', self::nodeToString($n))); }
-  static function oneline($n)   { return trim(preg_replace('~\s+~', ' ', self::nodeToString($n))); }
-  static function normalize($n) { return trim(preg_replace('~[ \t]+~', " ", preg_replace('~\n{3,}~', "\n\n", preg_replace('~([ \t]+$|^[ \t]+)~m', '', self::nodeToString($n))))); }
+  static function toString($n)  { return trim(preg_replace('~ +~', ' ', self::_nodeToString($n))); }
+  static function oneline($n)   { return trim(preg_replace('~\s+~', ' ', self::_nodeToString($n))); }
+  static function normalize($n) { return trim(preg_replace('~[ \t]+~', " ", preg_replace('~\n{3,}~', "\n\n", preg_replace('~([ \t]+$|^[ \t]+)~m', '', self::_nodeToString($n))))); }
   static function identity($n)  { return $n; }
   static function distr($f)     { return function ($x) use ($f) { return array_map($f, $x); }; }
 
@@ -116,10 +132,11 @@ class Matcher {
   /** maps only SimpleXMLElement in arbitrary depth */
   private function _deepMapNode(Matcher $f) {
     $mapf = function ($node, $extractor) use($f, &$mapf) {
-
       if ($node instanceof \SimpleXMLElement) return call_user_func($f, $node, $extractor);
+      if ($node instanceof \DOMNode)          return call_user_func($f, $node, $extractor);
       if (is_object($node))                   return (object) $mapf(get_object_vars($node), $extractor);
-      if (is_array($node))                    return empty($node) ? array() : array_combine(array_keys($node), array_map($mapf, $node, array_fill(0, count($node), $extractor)));
+      if (is_array($node) && empty($node))    return array();
+      if (is_array($node))                    return array_combine(array_keys($node), array_map($mapf, $node, array_fill(0, count($node), $extractor)));
       else                                    return $node;
     };
 
@@ -151,6 +168,7 @@ class Matcher {
       return $m($node, $extractor);
     }, $this);
   }
+
 
 
   function asInt()   { return $this->map('intval'); }
@@ -217,7 +235,8 @@ class Matcher {
 
       $return = array();
       foreach($rawByBoth as $n) {
-        if (($i = array_search($n, $raw, false)) !== false) {
+        $strict = ($n instanceof \DOMNode); // strict must be false for SimpleXML and true for DOM
+        if (($i = array_search($n, $raw, $strict)) !== false) {
           $return[] = $matched[$i];
         }
       }
@@ -234,6 +253,36 @@ class Matcher {
   }
 
 
+  static function _xpathAll($node, $path) {
+    if ($node instanceof \DOMNode) {
+      $dom = ($node instanceof \DOMDocument) ? $node : $node->ownerDocument;
+      $xpath = new \DOMXPath($dom);
+      $res = $xpath->query($path, $node);
+      return iterator_to_array($res);
+    } else {
+      return $node->xpath($path);
+    }
+  }
+
+
+  static function _children($node) {
+    if ($node instanceof \DOMNode) {
+      return $node->childNodes;
+    } else {
+      return $node->children();
+    }
+  }
+
+
+  static function _nodeToString($node) {
+    if ($node instanceof \DOMNode) {
+      return $node->nodeValue;
+    } else {
+      return dom_import_simplexml($node)->nodeValue;
+    }
+  }
+
+
   /** @internal */
   static function _evalPath($node, $path, $extractor) { // todo
     if ($path instanceof Matcher || $path instanceof \Closure) { // key => multipath
@@ -243,11 +292,11 @@ class Matcher {
       return Matcher::_extractPaths($node, $path, $extractor);
 
     } elseif (is_string($path)) { // key => path
-      $matches = $node->xpath($path);
+      $matches = self::_xpathAll($node, $path);
       return count($matches) === 0 ? null : call_user_func($extractor, $matches[0]);
 
     } elseif (is_int($path)) { // key => position of child element
-      $ns = $node->children();
+      $ns = self::_children($node);
       return call_user_func($extractor, $ns[$path]);
 
     } else {
