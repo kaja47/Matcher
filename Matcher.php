@@ -257,8 +257,8 @@ class Matcher {
     if ($node instanceof \DOMNode) {
       $dom = ($node instanceof \DOMDocument) ? $node : $node->ownerDocument;
       $xpath = new \DOMXPath($dom);
-      $res = $xpath->query($path, $node);
-      return iterator_to_array($res);
+      $res = $xpath->evaluate($path, $node);
+      return (is_scalar($res)) ? $res : iterator_to_array($res);
     } else {
       return $node->xpath($path);
     }
@@ -293,7 +293,13 @@ class Matcher {
 
     } elseif (is_string($path)) { // key => path
       $matches = self::_xpathAll($node, $path);
-      return count($matches) === 0 ? null : call_user_func($extractor, $matches[0]);
+      if (is_scalar($matches)) {
+        return $matches;
+      } else if (count($matches) === 0) {
+        return null;
+      } else {
+        return call_user_func($extractor, $matches[0]);
+      }
 
     } elseif (is_int($path)) { // key => position of child element
       $ns = self::_children($node);
