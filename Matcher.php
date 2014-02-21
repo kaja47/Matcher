@@ -259,17 +259,10 @@ class Matcher {
       $xpath = new \DOMXPath($dom);
       $res = $xpath->evaluate($path, $node);
       return (is_scalar($res)) ? $res : iterator_to_array($res);
-    } else {
+    } else if ($node instanceof \SimpleXMLElement) {
       return $node->xpath($path);
-    }
-  }
-
-
-  static function _children($node) {
-    if ($node instanceof \DOMNode) {
-      return $node->childNodes;
     } else {
-      return $node->children();
+      throw new \Exception("Cannot execute query. DOMNode or SimpleXMLElement expected.");
     }
   }
 
@@ -302,8 +295,8 @@ class Matcher {
       }
 
     } elseif (is_int($path)) { // key => position of child element
-      $ns = self::_children($node);
-      return call_user_func($extractor, $ns[$path]);
+      $ns = self::_xpathAll($node, "*[$path]");
+      return empty($ns) ? null : call_user_func($extractor, reset($ns));
 
     } else {
       throw new \Exception("Invalid path. Expected string, int, array, stdClass object, Matcher object of function, ".gettype($val)." given");
