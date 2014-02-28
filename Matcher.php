@@ -31,11 +31,14 @@ class Matcher {
   static function multi($path) {
     $args = func_get_args();
     $path = array_shift($args);
-    $m = new Matcher(function($node, $extractor = null) use($path) {
-      $extractor = Matcher::_getExtractor($extractor);
-      if (is_string($path)) return array_map($extractor, Matcher::_xpathAll($node, $path));
-      else                  return Matcher::_evalPath($node, $path, $extractor);
-    }, $path);
+    if (is_string($path)) {
+      $m = new Matcher(function($node, $extractor = null) use($path) {
+        $extractor = Matcher::_getExtractor($extractor);
+        return array_map($extractor, Matcher::_xpathAll($node, $path));
+      }, $path);
+    } else {
+      $m = self::single($path);
+    }
     return empty($args) ? $m : $m->raw()->_deepMapNode(call_user_func_array('\Atrox\Matcher::multi', $args));
   }
 
@@ -119,10 +122,10 @@ class Matcher {
 
 
   /** @param callback $f  SimpleXMLElement => ? */
-  function withExtractor($f) {
+  function withExtractor($extractor) {
     $self = $this->f;
-    return new Matcher(function ($node, $extractor = null) use($self, $f) { // outer extractor passed as argument is thrown away
-      return $self($node, $f);
+    return new Matcher(function ($node, $oldExtractor = null) use($self, $extractor) { // outer extractor passed as argument is thrown away
+      return $self($node, $extractor);
     }, $this);
   }
 
