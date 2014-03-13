@@ -69,35 +69,54 @@ class Matcher {
 
 
 
-  static function loadHTML($html, $asDom) {
-    $dom = @ \DOMDocument::loadHTML($html);
-    if ($dom === false) {
-      throw new \Exception("Invalid HTML document");
+  static function checkXml($status, $errmsg) {
+    if ($status === false) {
+      $error = libxml_get_last_error();
+      if ($error && $error->message) {
+        throw new \RuntimeException($errmsg.": ".trim($error->message));
+      } else {
+        throw new \RuntimeException($errmsg);
+      }
     }
+  }
+
+  static function loadHTML($html, $asDom) {
+    $useIntErr = libxml_use_internal_errors(true);
+    $dom = new \DOMDocument;
+    $ok = $dom->loadHTML($html);
+    libxml_use_internal_errors($useIntErr);
+
+    self::checkXml($ok, "Invalid HTML document");
+
     if ($asDom) {
       return $dom;
     }
-    $simpleXML = @ simplexml_import_dom($dom);
-    if ($simpleXML === false) {
-      throw new \Exception("Can't import DOM document into SimpleXML");
-    }
+
+    $useIntErr = libxml_use_internal_errors(true);
+    $simpleXML = simplexml_import_dom($dom);
+    libxml_use_internal_errors($useIntErr);
+
+    self::checkXml($simpleXML, "Can't import DOM document into SimpleXML");
     return $simpleXML;
   }
 
   static function loadXML($xml, $asDom) {
     if ($asDom) {
-      $dom = @ \DOMDocument::loadXML($xml);
-      if ($dom === false) {
-        throw new \Exception("Invalid XML document");
-      }
+      $useIntErr = libxml_use_internal_errors(true);
+      $dom = new \DOMDocument();
+      $ok = $dom->loadXML($xml);
+      libxml_use_internal_errors($useIntErr);
+
+      self::checkXml($ok, "Invalid XML document");
       return $dom;
 
     } else {
-      $simpleXML = @ simplexml_load_string($xml);
-      if ($simpleXML === false) {
-        throw new \Exception("Invalid XML document");
-      }
-      return $simpleXML;
+      $useIntErr = libxml_use_internal_errors(true);
+      $simpleXML = simplexml_load_string($xml);
+      libxml_use_internal_errors($useIntErr);
+
+      self::checkXml($simpleXML, "Invalid XML document");
+      return $dom;
     }
   }
 
