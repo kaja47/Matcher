@@ -116,7 +116,7 @@ class Matcher {
       libxml_use_internal_errors($useIntErr);
 
       self::checkXml($simpleXML, "Invalid XML document");
-      return $dom;
+      return $simpleXML;
     }
   }
 
