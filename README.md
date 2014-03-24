@@ -58,14 +58,16 @@ result:
 Matchers can be arbitrarily chained and nested.
 
 ```php
-$m = Matcher::multi('//div[@class="thread"]', [
-  'op'      => './div[@class="postContainer opContainer"]',
-  'replies' => Matcher::multi('./div[@class="postContainer replyContainer"]')
-], Matcher::single('.//div[@class="postInfo desktop"]', [
+$postMatcher = Matcher::single('.//div[@class="postInfo desktop"]', [
   'id'   => './input/@name',
   'name' => './span[@class="nameBlock"]/span[@class="name"]',
   'date' => './span/@data-utc',
-)])->fromHtml();
+]);
+
+$m = Matcher::multi('//div[@class="thread"]', [
+  'op'      => Matcher::single('./div[@class="postContainer opContainer"]', $postMatcher),
+  'replies' => Matcher::multi('./div[@class="postContainer replyContainer"]', $postMatcher)
+])->fromHtml();
 
 $f = file_get_contents('http://boards.4chan.org/po/');
 
