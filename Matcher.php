@@ -18,37 +18,41 @@ class Matcher {
   const normalize = '\Atrox\Matcher::normalize';
   const identity  = '\Atrox\Matcher::identity';
 
+
   private $f;
+
 
   function __construct($f, $m = null) { $this->f = $f; }
   function __invoke() { return call_user_func_array($this->f, func_get_args()); }
 
 
   /** @param string|array|int|Closure|Matcher $path */
-  static function multi($path) {
-    $args = func_get_args();
-    $path = array_shift($args);
+  static function multi($path, $next = null) {
     if (is_string($path)) {
-      $m = new Matcher(function($node, $extractor = null) use($path) {
+      $m = new Matcher(function($node, $extractor = null) use ($path) {
         $extractor = Matcher::_getExtractor($extractor);
         return array_map($extractor, Matcher::_xpathAll($node, $path));
       }, $path);
     } else {
       $m = self::single($path);
     }
-    return empty($args) ? $m : $m->raw()->_deepMapNode(call_user_func_array('\Atrox\Matcher::multi', $args));
-  }
 
+    return ($next === null) ? $m : $m->mapRaw(function ($nodes, $extractor = null) use ($next) {
+      $m = self::multi($next);
+      return array_combine(array_keys($nodes), array_map($m->f, $nodes, array_fill(0, count($nodes), $extractor)));
+    });
+  }
 
   /** @param string|array|int|Closure|Matcher $path */
   static function single($path) {
     $args = func_get_args();
     $path = array_shift($args);
-    $m = new Matcher(function ($node, $extractor = null) use($path) {
+    $m = new Matcher(function ($node, $extractor = null) use ($path) {
       $extractor = Matcher::_getExtractor($extractor);
       return Matcher::_evalPath($node, $path, $extractor);
     }, $path);
-    return empty($args) ? $m : $m->raw()->_deepMapNode(call_user_func_array('\Atrox\Matcher::single', $args));
+
+    return empty($args) ? $m : $m->mapRaw(call_user_func_array('\Atrox\Matcher::single', $args));
   }
 
   static function has($path) {
@@ -142,42 +146,29 @@ class Matcher {
   /** @param callback $f  SimpleXMLElement => ? */
   function withExtractor($extractor) {
     $self = $this->f;
-    return new Matcher(function ($node, $oldExtractor = null) use($self, $extractor) { // outer extractor passed as argument is thrown away
+    return new Matcher(function ($node, $_ = null) use ($self, $extractor) { // outer extractor passed as argument is thrown away
       return $self($node, $extractor);
     }, $this);
   }
 
-  function raw() { return $this->withExtractor(Matcher::identity); }
-
-
-  /** maps only SimpleXMLElement in arbitrary depth */
-  private function _deepMapNode(Matcher $f) {
-    $mapf = function ($node, $extractor) use($f, &$mapf) {
-      if ($node instanceof \SimpleXMLElement) return call_user_func($f, $node, $extractor);
-      if ($node instanceof \DOMNode)          return call_user_func($f, $node, $extractor);
-      if (is_object($node))                   return (object) $mapf(get_object_vars($node), $extractor);
-      if (is_array($node) && empty($node))    return array();
-      if (is_array($node))                    return array_combine(array_keys($node), array_map($mapf, $node, array_fill(0, count($node), $extractor)));
-      else                                    return $node;
-    };
-
-    return $this->mapEx($mapf);
-  }
-
-
   /** Applies function $f to result of matcher (*after* extractor) */
-  function map($f) { return $this->mapEx(function ($node, $extractor) use ($f) { return call_user_func($f, $node); }); }
-  function andThen($f) { return $this->map($f); }
-
-
-  private function mapEx($f) {
+  function map($f) {
     $self = $this->f;
-    return new Matcher(function ($node, $extractor = null) use($self, $f) {
-      return $f($self($node, $extractor), $extractor);
+    return new Matcher(function ($node, $extractor = null) use ($self, $f) {
+      return call_user_func($f, $self($node, $extractor));
     }, $this);
   }
 
+  function andThen($f) { return $this->map($f); }
 
+  /** Return new Matcher that execute $this matcher without extraction and then 
+    * apply function $f to the result */
+  function mapRaw($f) {
+    $self = $this->f;
+    return new Matcher(function ($node, $extractor = null) use ($self, $f) {
+      return $f($self($node, Matcher::identity), $extractor);
+    }, $this);
+  }
 
 
   function asInt()   { return $this->map('intval'); }
@@ -185,12 +176,11 @@ class Matcher {
   function first()   { return $this->map(function ($xs) { return reset($xs); }); } 
 
 
-  /**
-   * regexes without named patterns will return numeric array without key 0
-   * if result of previous matcher is array, it recursively applies regex on every element of that array
-   */
+  /** Regexes without named patterns will return numeric array without key 0.
+    * If result of previous matcher is array, it recursively applies regex on 
+    * every element of that array.  */
   function regex($regex) {
-    $f = function ($res) use($regex, & $f) { // &$f for anonymous recursion
+    $f = function ($res) use ($regex, & $f) { // &$f for anonymous recursion
       if ($res === null) {
         return null;
 
@@ -216,8 +206,8 @@ class Matcher {
   }
 
 
-
   // actual runtime methods
+
 
   /** @internal */
   static function _getExtractor($extractor) {
@@ -234,7 +224,7 @@ class Matcher {
     } else if ($node instanceof \SimpleXMLElement) {
       return $node->xpath($path);
     } else {
-      throw new \Exception("Cannot execute query. DOMNode or SimpleXMLElement expected.");
+      throw new \Exception("Cannot execute query. DOMNode or SimpleXMLElement expected, ".gettype($node)." given.");
     }
   }
 
