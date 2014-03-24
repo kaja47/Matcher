@@ -81,6 +81,10 @@ class Matcher {
   }
 
   static function loadHTML($html, $asDom) {
+    if ($html === '') {
+      throw new \RuntimeException("Invalid HTML document: empty string");
+    }
+
     $useIntErr = libxml_use_internal_errors(true);
     $dom = new \DOMDocument;
     $ok = $dom->loadHTML($html);
@@ -101,6 +105,10 @@ class Matcher {
   }
 
   static function loadXML($xml, $asDom) {
+    if ($xml === '') {
+      throw new \RuntimeException("Invalid XML document: empty string");
+    }
+
     if ($asDom) {
       $useIntErr = libxml_use_internal_errors(true);
       $dom = new \DOMDocument();
