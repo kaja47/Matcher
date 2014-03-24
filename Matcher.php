@@ -19,15 +19,12 @@ class Matcher {
   const identity  = '\Atrox\Matcher::identity';
 
   private $f;
-  private $m; // path
 
-  function __construct($f, $m = null) { $this->f = $f; $this->m = $m; }
-  function __invoke()      { return call_user_func_array($this->f, func_get_args()); }
+  function __construct($f, $m = null) { $this->f = $f; }
+  function __invoke() { return call_user_func_array($this->f, func_get_args()); }
 
 
-  /**
-   *  @param string|array|int|Closure|Matcher $path
-   */
+  /** @param string|array|int|Closure|Matcher $path */
   static function multi($path) {
     $args = func_get_args();
     $path = array_shift($args);
@@ -43,9 +40,7 @@ class Matcher {
   }
 
 
-  /**
-   *  @param string|array|int|Closure|Matcher $path
-   */
+  /** @param string|array|int|Closure|Matcher $path */
   static function single($path) {
     $args = func_get_args();
     $path = array_shift($args);
@@ -63,9 +58,6 @@ class Matcher {
   static function count($path) {
     return Matcher::multi($path)->map('count');
   }
-
-  function _filter($f) { return $this->raw()->map(function($ns) use ($f) { return array_filter($ns, $f); }); }
-  function _single($path) { return $this->raw()->_deepMapNode(Matcher::single($path)); }
 
 
 
@@ -145,7 +137,6 @@ class Matcher {
   static function oneline($n)   { return trim(preg_replace('~\s+~', ' ', self::_nodeToString($n))); }
   static function normalize($n) { return trim(preg_replace('~[ \t]+~', " ", preg_replace('~\n{3,}~', "\n\n", preg_replace('~([ \t]+$|^[ \t]+)~m', '', self::_nodeToString($n))))); }
   static function identity($n)  { return $n; }
-  static function distr($f)     { return function ($x) use ($f) { return array_map($f, $x); }; }
 
 
   /** @param callback $f  SimpleXMLElement => ? */
@@ -187,18 +178,6 @@ class Matcher {
   }
 
 
-  /**
-   * monadic bind function (may not work)
-   * @param callback $f: A => Matcher[B]
-   */
-  function flatMap($f) {
-    $self = $this->f;
-    return new Matcher(function ($node, $extractor = null) use($self, $f) {
-      $m = $f($self($node, Matcher::identity));
-      return $m($node, $extractor);
-    }, $this);
-  }
-
 
 
   function asInt()   { return $this->map('intval'); }
@@ -236,43 +215,6 @@ class Matcher {
     return $this->map($f);
   }
 
-
-  /** experimental and uncomprehensible */
-  function seqOr(Matcher $that) {
-    $self = $this;
-
-    $thisPath = $this;
-    while ($thisPath instanceof Matcher) {
-      $thisRaw  = $thisPath->raw();
-      $thisPath = $thisPath->m;
-    }
-    $thatPath = $that;
-    while ($thatPath instanceof Matcher) {
-      $thatRaw  = $thatPath->raw();
-      $thatPath = $thatPath->m;
-    }
-
-    if (!is_string($thisPath) || !is_string($thatPath)) throw new \Exception('Method seqOr can be used only with matchers matching against string.');
-
-    $mm = Matcher::multi("$thisPath | $thatPath")->raw();
-    return new Matcher(function ($node, $extractor = null) use ($mm, $self, $that, $thisRaw, $thatRaw) {
-      $rawByBoth = $mm($node, $extractor);
-
-      $run = function ($m) use ($node, $extractor) { $arr = $m($node, $extractor); return is_array($arr) ? $arr : array($arr); };
-
-      $raw     = array_merge($run($thisRaw), $run($thatRaw));
-      $matched = array_merge($run($self), $run($that));
-
-      $return = array();
-      foreach($rawByBoth as $n) {
-        $strict = ($n instanceof \DOMNode); // strict must be false for SimpleXML and true for DOM
-        if (($i = array_search($n, $raw, $strict)) !== false) {
-          $return[] = $matched[$i];
-        }
-      }
-      return $return;
-    }, $mm);
-  }
 
 
   // actual runtime methods
