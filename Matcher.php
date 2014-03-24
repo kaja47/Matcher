@@ -39,7 +39,6 @@ class Matcher {
 
     return ($next === null) ? $m : $m->mapRaw(function ($nodes, $context) use ($next) {
       $m = self::multi($next);
-      $m($nodes[0], $context);
       return array_combine(array_keys($nodes), array_map($m->f, $nodes, array_fill(0, count($nodes), $context)));
     });
   }
