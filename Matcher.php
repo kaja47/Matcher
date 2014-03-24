@@ -22,24 +22,25 @@ class Matcher {
   private $f;
 
 
-  function __construct($f, $m = null) { $this->f = $f; }
+  function __construct($f) { $this->f = $f; }
   function __invoke() { return call_user_func_array($this->f, func_get_args()); }
 
 
   /** @param string|array|int|Closure|Matcher $path */
   static function multi($path, $next = null) {
     if (is_string($path)) {
-      $m = new Matcher(function($node, $extractor = null) use ($path) {
-        $extractor = Matcher::_getExtractor($extractor);
-        return array_map($extractor, Matcher::_xpathAll($node, $path));
+      $m = new Matcher(function($node, $context = null) use ($path) {
+        if ($context === null) $context = new MatcherContext(null);// in case this is top level matcher
+        return array_map($context->getExtractor(), $context->xpathAll($node, $path));
       }, $path);
     } else {
       $m = self::single($path);
     }
 
-    return ($next === null) ? $m : $m->mapRaw(function ($nodes, $extractor = null) use ($next) {
+    return ($next === null) ? $m : $m->mapRaw(function ($nodes, $context) use ($next) {
       $m = self::multi($next);
-      return array_combine(array_keys($nodes), array_map($m->f, $nodes, array_fill(0, count($nodes), $extractor)));
+      $m($nodes[0], $context);
+      return array_combine(array_keys($nodes), array_map($m->f, $nodes, array_fill(0, count($nodes), $context)));
     });
   }
 
@@ -47,12 +48,12 @@ class Matcher {
   static function single($path) {
     $args = func_get_args();
     $path = array_shift($args);
-    $m = new Matcher(function ($node, $extractor = null) use ($path) {
-      $extractor = Matcher::_getExtractor($extractor);
-      return Matcher::_evalPath($node, $path, $extractor);
+    $m = new Matcher(function ($node, $context = null) use ($path) {
+      if ($context === null) $context = new MatcherContext(null); // in case this is top level matcher
+      return Matcher::_evalPath($node, $path, $context);
     }, $path);
 
-    return empty($args) ? $m : $m->mapRaw(call_user_func_array('\Atrox\Matcher::single', $args));
+    return empty($args) ? $m : $m->mapRaw(call_user_func_array('\Atrox\Matcher::single', $args)->f);
   }
 
   static function has($path) {
@@ -76,7 +77,7 @@ class Matcher {
     }
   }
 
-  static function loadHTML($html, $asDom) {
+  static function loadHTML($html, $asDom = true) {
     if ($html === '') {
       throw new \RuntimeException("Invalid HTML document: empty string");
     }
@@ -100,7 +101,7 @@ class Matcher {
     return $simpleXML;
   }
 
-  static function loadXML($xml, $asDom) {
+  static function loadXML($xml, $asDom = true) {
     if ($xml === '') {
       throw new \RuntimeException("Invalid XML document: empty string");
     }
@@ -126,12 +127,14 @@ class Matcher {
 
 
   function fromHtml($ex = null, $asDom = true) {
-    $m = new Matcher(function ($html) use ($asDom) { return Matcher::loadHTML($html, $asDom); });
-    return $m->map($this->withExtractor($ex));
+    $f = $this->f;
+    $context = ($ex instanceof MatcherContext) ? $ex : new MatcherContext($ex);
+    return new Matcher(function ($html) use ($asDom, $context, $f) { return $f(Matcher::loadHTML($html, $asDom), $context); });
   }
   function fromXml($ex = null, $asDom = true) {
-    $m = new Matcher(function ($xml) use ($asDom) { return Matcher::loadXML($xml, $asDom); });
-    return $m->map($this->withExtractor($ex));
+    $f = $this->f;
+    $context = ($ex instanceof MatcherContext) ? $ex : new MatcherContext($ex);
+    return new Matcher(function ($html) use ($asDom, $context, $f) { return $f(Matcher::loadXML($html, $asDom), $context); });
   }
 
 
@@ -143,19 +146,25 @@ class Matcher {
   static function identity($n)  { return $n; }
 
 
-  /** @param callback $f  SimpleXMLElement => ? */
   function withExtractor($extractor) {
     $self = $this->f;
-    return new Matcher(function ($node, $_ = null) use ($self, $extractor) { // outer extractor passed as argument is thrown away
-      return $self($node, $extractor);
+    return new Matcher(function ($node, $context) use ($self, $extractor) { // outer extractor passed as argument is thrown away
+      return $self($node, $context->withExtractor($extractor));
+    }, $this);
+  }
+
+  function withContext(MatcherContext $context) {
+    $self = $this->f;
+    return new Matcher(function ($node, $_) use ($self, $context) { // outer extractor passed as argument is thrown away
+      return $self($node, $context);
     }, $this);
   }
 
   /** Applies function $f to result of matcher (*after* extractor) */
   function map($f) {
     $self = $this->f;
-    return new Matcher(function ($node, $extractor = null) use ($self, $f) {
-      return call_user_func($f, $self($node, $extractor));
+    return new Matcher(function ($node, $context = null) use ($self, $f) {
+      return call_user_func($f, $self($node, $context));
     }, $this);
   }
 
@@ -165,8 +174,8 @@ class Matcher {
     * apply function $f to the result */
   function mapRaw($f) {
     $self = $this->f;
-    return new Matcher(function ($node, $extractor = null) use ($self, $f) {
-      return $f($self($node, Matcher::identity), $extractor);
+    return new Matcher(function ($node, $context) use ($self, $f) {
+      return $f($self($node, $context->withExtractor(Matcher::identity)), $context);
     }, $this);
   }
 
@@ -210,25 +219,6 @@ class Matcher {
 
 
   /** @internal */
-  static function _getExtractor($extractor) {
-    return $extractor ?: Matcher::toString; // Use outer extractor passed as argument, if it's null, use default extractor
-  }
-
-
-  static function _xpathAll($node, $path) {
-    if ($node instanceof \DOMNode) {
-      $dom = ($node instanceof \DOMDocument) ? $node : $node->ownerDocument;
-      $xpath = new \DOMXPath($dom);
-      $res = $xpath->evaluate($path, $node);
-      return (is_scalar($res)) ? $res : iterator_to_array($res);
-    } else if ($node instanceof \SimpleXMLElement) {
-      return $node->xpath($path);
-    } else {
-      throw new \Exception("Cannot execute query. DOMNode or SimpleXMLElement expected, ".gettype($node)." given.");
-    }
-  }
-
-
   static function _nodeToString($node) {
     if ($node instanceof \DOMNode) {
       return $node->nodeValue;
@@ -239,26 +229,26 @@ class Matcher {
 
 
   /** @internal */
-  static function _evalPath($node, $path, $extractor) { // todo
+  static function _evalPath($node, $path, $context) { // todo
     if ($path instanceof Matcher || $path instanceof \Closure) { // key => multipath
-      return $path($node, $extractor);
+      return $path($node, $context);
 
     } elseif (is_array($path) || is_object($path)) { // key => array(paths)
-      return Matcher::_extractPaths($node, $path, $extractor);
+      return Matcher::_extractPaths($node, $path, $context);
 
     } elseif (is_string($path)) { // key => path
-      $matches = self::_xpathAll($node, $path);
+      $matches = $context->xpathAll($node, $path);
       if (is_scalar($matches)) {
         return $matches;
       } else if (count($matches) === 0) {
         return null;
       } else {
-        return call_user_func($extractor, $matches[0]);
+        return call_user_func($context->getExtractor(), $matches[0]);
       }
 
     } elseif (is_int($path)) { // key => position of child element
-      $ns = self::_xpathAll($node, "*[$path]");
-      return empty($ns) ? null : call_user_func($extractor, reset($ns));
+      $ns = $context->xpathAll($node, "*[$path]");
+      return empty($ns) ? null : call_user_func($context->getExtractor(), reset($ns));
 
     } else {
       throw new \Exception("Invalid path. Expected string, int, array, stdClass object, Matcher object of function, ".gettype($val)." given");
@@ -267,19 +257,53 @@ class Matcher {
 
 
   /** @internal **/
-  static function _extractPaths($node, $paths, $extractor) {
+  static function _extractPaths($node, $paths, $context) {
     $return = array();
 
     foreach ($paths as $key => $val) {
       if (is_int($key)) { // merge into current level
-        $return = array_merge($return, Matcher::_evalPath($node, $val, $extractor)); // extracted value shoud be array
+        $return = array_merge($return, Matcher::_evalPath($node, $val, $context)); // extracted value shoud be array
 
       } else {
-        $return[$key] = Matcher::_evalPath($node, $val, $extractor);
+        $return[$key] = Matcher::_evalPath($node, $val, $context);
 
       }
     }
 
     return is_object($paths) ? (object) $return : $return;
+  }
+}
+
+
+class MatcherContext {
+  private $extractor, $namespaces;
+
+  function __construct($extractor, $namespaces = []) {
+    $this->extractor = $extractor;
+    $this->namespaces = $namespaces;
+  }
+
+  function withExtractor($extractor) {
+    return new self($extractor, $this->namespaces);
+  }
+
+  function xpathAll($node, $path) {
+    if ($node instanceof \DOMNode) {
+      $dom = ($node instanceof \DOMDocument) ? $node : $node->ownerDocument;
+      $xpath = new \DOMXPath($dom);
+      foreach ($this->namespaces as $prefix => $url) {
+        $xpath->registerNamespace($prefix, $url);
+      }
+      $res = $xpath->evaluate($path, $node);
+      return (is_scalar($res)) ? $res : iterator_to_array($res);
+    } else if ($node instanceof \SimpleXMLElement) {
+      return $node->xpath($path);
+    } else {
+      throw new \Exception("Cannot execute query. DOMNode or SimpleXMLElement expected.");
+    }
+  }
+
+  function getExtractor() {
+    return $this->extractor ?: Matcher::toString; // Use outer extractor passed as argument, if it's null, use default extractor
   }
 }
