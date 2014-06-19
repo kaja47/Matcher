@@ -1,19 +1,22 @@
 {
-    "name": "atrox/matcher",
-    "license": "New BSD",
-    "authors": [
-        {
-            "name": "Karel Čížek",
-            "email": "kaja47@k47.cz"
-        }
-    ],
-    "minimum-stability": "stable",
-    "require": {
-
-    },
-    "autoload": {
-      "psr-4": {
-        "Atrox\\": ""
-      }
-    }
+	"name": "atrox/matcher",
+	"type": "library",
+	"description": "Powerful XML and HTML matching library",
+	"keywords": ["xpath", "html", "xml"],
+	"license": "New BSD",
+	"authors": [
+		{
+			"name": "Karel Čížek",
+			"email": "kaja47@k47.cz",
+			"homepage": "http://funkcionalne.cz"
+		}
+	],
+	"minimum-stability": "stable",
+	"require": {
+	},
+	"autoload": {
+		"psr-4": {
+			"Atrox\\": ""
+		}
+	}
 }
