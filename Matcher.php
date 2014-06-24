@@ -64,6 +64,10 @@ class Matcher {
     return Matcher::multi($path)->map('count');
   }
 
+  static function constant($value) {
+    return function () use ($value) { return $value; };
+  }
+
 
 
   static function checkXml($status, $errmsg) {
