@@ -297,6 +297,9 @@ class MatcherContext {
       $res = $xpath->evaluate($path, $node);
       return (is_scalar($res)) ? $res : iterator_to_array($res);
     } else if ($node instanceof \SimpleXMLElement) {
+      foreach ($this->namespaces as $prefix => $url) {
+        $node->registerXPathNamespace($prefix, $url);
+      }
       return $node->xpath($path);
     } else {
       throw new \Exception("Cannot execute query. DOMNode or SimpleXMLElement expected.");
