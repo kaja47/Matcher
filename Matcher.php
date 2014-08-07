@@ -306,7 +306,8 @@ class MatcherContext {
       }
       return $node->xpath($path);
     } else {
-      throw new \Exception("Cannot execute query. DOMNode or SimpleXMLElement expected.");
+      $hint = (gettype($node) === 'string') ? ' Maybe you forgot to call `fromXml` or `fromHtml` on your matcher.' : '';
+      throw new \Exception("Cannot execute query. DOMNode or SimpleXMLElement expected.$hint");
     }
   }
 
