@@ -1,7 +1,7 @@
 {
 	"name": "atrox/matcher",
 	"type": "library",
-	"description": "Powerful XML and HTML matching library",
+	"description": "Powerful XML and HTML matching and data extraction library",
 	"keywords": ["xpath", "html", "xml"],
 	"license": "New BSD",
 	"authors": [
@@ -13,6 +13,9 @@
 	],
 	"minimum-stability": "stable",
 	"require": {
+	},
+	"require-dev": {
+		"nette/tester": "~1.1"
 	},
 	"autoload": {
 		"psr-4": {
