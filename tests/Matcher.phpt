@@ -172,6 +172,22 @@ Assert::same($m($html), [
 ]);
 
 
+$m = Matcher::multi('//div[@class="article"]', [
+	'titleData' => [
+		'title' => 'h2',
+		'url'   => 'h2/a/@href',
+	],
+	'text'  => './/div[@class="text"]'
+])->fromHtml();
+
+Assert::same($m($html), [
+	['titleData' => ['title' => 'article1', 'url' => 'url1'], 'text' => 'text1'],
+	['titleData' => ['title' => 'article2', 'url' => 'url2'], 'text' => 'text2'],
+	['titleData' => ['title' => 'article3', 'url' => 'url3'], 'text' => 'text3'],
+	['titleData' => ['title' => 'article4', 'url' => null],   'text' => 'text4'],
+]);
+
+
 $m = Matcher::multi("//table//tr[position() > 1]", [
 	'name'  => 1,
 	'score' => Matcher::single(2)->asInt(),
@@ -184,20 +200,19 @@ Assert::same($m(file_get_contents(__DIR__ . '/test-table.html')), [
 
 
 // everything is a function
-//$m = Matcher::multi('//div[@class="article"]', [
-//	'title' => 'h2',
-//	'text' => function ($rawDomNode) {
-//		return $rawDomNode->getElementsByTagName('');
-//	},
-//])->fromHtml();
-//
-//Assert::same($m($html));die;
-//Assert::same($m($html), [
-//	['title' => 'article1', 'text' => 'text1'],
-//	['title' => 'article2', 'text' => 'text2'],
-//	['title' => 'article3', 'text' => 'text3'],
-//	['title' => 'article4', 'text' => 'text4'],
-//]);
+$m = Matcher::multi('//div[@class="article"]', [
+	'title' => 'h2',
+	'id'    => function (\DOMElement $node) {
+		return (int) $node->getAttribute('data-id');
+	},
+])->fromHtml();
+
+Assert::same($m($html), [
+	['title' => 'article1', 'id' => 1],
+	['title' => 'article2', 'id' => 2],
+	['title' => 'article3', 'id' => 3],
+	['title' => 'article4', 'id' => 4],
+]);
 
 
 $matcher = Matcher::single('//h1');
