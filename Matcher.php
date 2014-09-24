@@ -174,12 +174,20 @@ class Matcher {
 
   function andThen($f) { return $this->map($f); }
 
-  /** Return new Matcher that execute $this matcher without extraction and then 
+  /** Return new Matcher that executes $this matcher without extraction and then 
     * apply function $f to the result */
   function mapRaw($f) {
     $self = $this->f;
     return new Matcher(function ($node, $context) use ($self, $f) {
       return $f($self($node, $context->withExtractor(Matcher::identity)), $context);
+    }, $this);
+  }
+
+
+  function orElse($m) {
+    $self = $this->f;
+    return new Matcher(function ($node, $context) use ($self, $m) {
+      return $self($node, $context) ?: Matcher::_evalPath($node, $m, $context);
     }, $this);
   }
 
