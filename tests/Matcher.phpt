@@ -188,6 +188,34 @@ Assert::same($m($html), [
 ]);
 
 
+// orElse
+
+$m = Matcher::multi('//div[@class="article"]', [
+	'url' => Matcher::single('h2/a/@href')->orElse('@data-id')
+])->fromHtml();
+
+Assert::same($m($html), [
+	['url' => 'url1'],
+	['url' => 'url2'],
+	['url' => 'url3'],
+	['url' => '4'],
+]);
+
+
+$m = Matcher::multi('//div[@class="article"]', [
+	'url' => Matcher::single('h2/a/@href')->orElse('@data-id')->map(function ($x) {
+		return 'http://example.com/'.$x;
+	})
+])->fromHtml();
+
+Assert::same($m($html), [
+	['url' => 'http://example.com/url1'],
+	['url' => 'http://example.com/url2'],
+	['url' => 'http://example.com/url3'],
+	['url' => 'http://example.com/4'],
+]);
+
+
 $m = Matcher::multi("//table//tr[position() > 1]", [
 	'name'  => 1,
 	'score' => Matcher::single(2)->asInt(),
