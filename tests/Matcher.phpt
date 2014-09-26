@@ -252,6 +252,16 @@ $m = $matcher->fromXml();
 Assert::same($m($html), "title");
 
 
+
+// XPath functions
+
+$m = Matcher::single('count(//h1)')->fromHtml();
+Assert::same($m($html), 1.0);
+
+$m = Matcher::single('count(//h2)')->fromHtml();
+Assert::same($m($html), 4.0);
+
+
 // extractors
 
 $xml = trim("
