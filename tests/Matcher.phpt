@@ -100,6 +100,18 @@ Assert::same($m($html), [
 ]);
 
 
+// method first() can handle nulls
+
+$m = Matcher::single('//non-existent-node')->regex('~published: (?P<date>.*)~')->first()->fromHtml();
+
+Assert::same(null, $m($html));
+
+
+$m = Matcher::single('//span[@class="date"]')->regex('~wrong pattern: (?P<date>.*)~')->first()->fromHtml();
+
+Assert::same(null, $m($html));
+
+
 $m = Matcher::multi('//div[@class="article"]', [
 	'title' => 'h2',
 	'id' => Matcher::single('@data-id')->asInt(),

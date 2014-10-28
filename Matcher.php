@@ -194,7 +194,11 @@ class Matcher {
 
   function asInt()   { return $this->map('intval'); }
   function asFloat() { return $this->map('floatval'); }
-  function first()   { return $this->map(function ($xs) { return reset($xs); }); } 
+  function first()   {
+    return $this->map(function ($xs) {
+      return ($xs === null || (is_array($xs) && empty($xs))) ? null : reset($xs);
+    });
+  }
 
 
   /** Regexes without named patterns will return numeric array without key 0.
