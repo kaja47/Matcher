@@ -40,7 +40,7 @@ class Matcher {
     return ($next === null) ? $m : $m->mapRaw(function ($nodes, $context) use ($next) {
       $m = self::multi($next);
       $count = count($nodes);
-      return ($count === 0) ? [] : array_combine(array_keys($nodes), array_map($m->f, $nodes, array_fill(0, $count, $context)));
+      return ($count === 0) ? array() : array_combine(array_keys($nodes), array_map($m->f, $nodes, array_fill(0, $count, $context)));
     });
   }
 
@@ -294,7 +294,7 @@ class Matcher {
 class MatcherContext {
   private $extractor, $namespaces;
 
-  function __construct($extractor, $namespaces = []) {
+  function __construct($extractor, $namespaces = array()) {
     $this->extractor = $extractor;
     $this->namespaces = $namespaces;
   }
