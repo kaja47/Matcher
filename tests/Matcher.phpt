@@ -9,6 +9,7 @@ use Atrox\MatcherContext;
 
 Tester\Environment::setup();
 
+date_default_timezone_set('America/Los_Angeles');
 
 
 $html = file_get_contents(__DIR__ . "/test-doc.html");
