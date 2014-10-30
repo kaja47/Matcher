@@ -154,14 +154,14 @@ class Matcher {
     $self = $this->f;
     return new Matcher(function ($node, $context) use ($self, $extractor) { // outer extractor passed as argument is thrown away
       return $self($node, $context->withExtractor($extractor));
-    }, $this);
+    });
   }
 
   function withContext(MatcherContext $context) {
     $self = $this->f;
     return new Matcher(function ($node, $_) use ($self, $context) { // outer extractor passed as argument is thrown away
       return $self($node, $context);
-    }, $this);
+    });
   }
 
   /** Applies function $f to result of matcher (*after* extractor) */
@@ -169,7 +169,7 @@ class Matcher {
     $self = $this->f;
     return new Matcher(function ($node, $context = null) use ($self, $f) {
       return call_user_func($f, $self($node, $context));
-    }, $this);
+    });
   }
 
   function andThen($f) { return $this->map($f); }
@@ -180,7 +180,7 @@ class Matcher {
     $self = $this->f;
     return new Matcher(function ($node, $context) use ($self, $f) {
       return $f($self($node, $context->withExtractor(Matcher::identity)), $context);
-    }, $this);
+    });
   }
 
 
@@ -188,7 +188,7 @@ class Matcher {
     $self = $this->f;
     return new Matcher(function ($node, $context) use ($self, $m) {
       return $self($node, $context) ?: Matcher::_evalPath($node, $m, $context);
-    }, $this);
+    });
   }
 
 
