@@ -9,6 +9,8 @@ Examples:
 ---------
 
 ```php
+<?php
+
 use Atrox\Matcher;
 
 $m = Matcher::multi('//div[@id="siteTable"]/div[contains(@class, "thing")]', [
@@ -33,6 +35,8 @@ $extractedData = $m($f);
 result:
 
 ```php
+<?php
+
 [
   [
     "id"    => "t3_1ep0c5",
@@ -58,6 +62,8 @@ result:
 Matchers can be arbitrarily chained and nested.
 
 ```php
+<?php
+
 $postMatcher = Matcher::single('.//div[@class="postInfo desktop"]', [
   'id'   => './input/@name',
   'name' => './span[@class="nameBlock"]/span[@class="name"]',
@@ -77,6 +83,7 @@ $extractedData = $m($f);
 result:
 
 ```php
+<?php
 
 [
   [
