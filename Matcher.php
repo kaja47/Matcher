@@ -19,7 +19,7 @@ class Matcher {
   const identity  = '\Atrox\Matcher::identity';
 
 
-  private $f;
+  public $f; // public only for support PHP 5.3
 
 
   function __construct($f) { $this->f = $f; }
@@ -38,7 +38,7 @@ class Matcher {
     }
 
     return ($next === null) ? $m : $m->mapRaw(function ($nodes, $context) use ($next) {
-      $m = self::multi($next);
+      $m = Matcher::multi($next);
       $count = count($nodes);
       return ($count === 0) ? array() : array_combine(array_keys($nodes), array_map($m->f, $nodes, array_fill(0, $count, $context)));
     });
