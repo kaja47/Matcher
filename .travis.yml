@@ -7,14 +7,21 @@ php:
   - hhvm
   - hhvm-nightly
 
+env:
+  - TESTER_PHP_BIN=php
+  - TESTER_PHP_BIN=php-cgi
+
 matrix:
-  allow_failures:
+  exclude:
     - php: hhvm
+      env: TESTER_PHP_BIN=php-cgi
+
     - php: hhvm-nightly
+      env: TESTER_PHP_BIN=php-cgi
 
 before_script:
   - composer self-update
   - composer install --no-interaction --prefer-source --dev
 
 script:
-  - ./vendor/bin/tester tests/
+  - ./vendor/bin/tester -p $TESTER_PHP_BIN tests/
