@@ -1,6 +1,8 @@
 Atrox\Matcher
 =============
 
+[![Build Status](https://travis-ci.org/kaja47/Matcher.svg?branch=master)](https://travis-ci.org/kaja47/Matcher)
+
 Matcher - powerful tool for extracting data from XML and HTML using XPath and
 pure magic.
 
