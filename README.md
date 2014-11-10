@@ -3,6 +3,7 @@ Atrox\Matcher
 
 [![Downloads this Month](https://img.shields.io/packagist/dm/atrox/matcher.svg)](https://packagist.org/packages/atrox/matcher)
 [![Build Status](https://travis-ci.org/kaja47/Matcher.svg?branch=master)](https://travis-ci.org/kaja47/Matcher)
+[![License](https://poser.pugx.org/atrox/Matcher/license.svg)](https://packagist.org/packages/atrox/Matcher)
 
 Matcher - powerful tool for extracting data from XML and HTML using XPath and
 pure magic.
