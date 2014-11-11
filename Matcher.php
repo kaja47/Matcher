@@ -174,7 +174,7 @@ class Matcher {
 
   function andThen($f) { return $this->map($f); }
 
-  /** Return new Matcher that executes $this matcher without extraction and then 
+  /** Return new Matcher that executes $this matcher without extraction and then
     * apply function $f to the result */
   function mapRaw($f) {
     $self = $this->f;
@@ -202,7 +202,7 @@ class Matcher {
 
 
   /** Regexes without named patterns will return numeric array without key 0.
-    * If result of previous matcher is array, it recursively applies regex on 
+    * If result of previous matcher is array, it recursively applies regex on
     * every element of that array.  */
   function regex($regex) {
     $f = function ($res) use ($regex, & $f) { // &$f for anonymous recursion

@@ -27,7 +27,7 @@ function runTests($asDom) {
 		<c>  test  test  </c>
 		<d>1 <x>2</x> 3 <x>4</x> 5</d>
 		<e>
-		1 
+		1
 	<x>2</x>
 		3    <x>4</x>
 
