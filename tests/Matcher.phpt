@@ -72,7 +72,7 @@ $m = Matcher::multi('//div[@class="article"]', [
 		if (preg_match('~published: (.*)~', $date, $m)) {
 			return strtotime($m[1]);
 		}	else {
-			return null;	
+			return null;
 		}
 	})
 ])->fromHtml();
@@ -278,12 +278,12 @@ Assert::same($m($html), 4.0);
 // extractors
 
 $xml = trim("
-<root>	
+<root>
 	<el>
 		multiple
 		lines
 	</el>
-</root>	
+</root>
 ");
 
 $matcher = Matcher::single('/root/el');
@@ -310,10 +310,10 @@ Assert::type('SimpleXMLElement', $m($xml));
 // xml namespaces
 $atomXml = trim('
 <?xml version="1.0" encoding="utf-8"?>
- 
+
 <feed xmlns="http://www.w3.org/2005/Atom">
 	<title>Example Feed</title>
- 
+
 	<entry>
 		<title>Atom-Powered Robots Run Amok</title>
 	</entry>
