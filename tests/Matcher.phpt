@@ -170,6 +170,79 @@ Assert::same($m($html), [
 
 
 $m = Matcher::multi('//div[@class="article"]', [
+	[
+		'title' => './h2',
+		'url'   => './h2/a/@href',
+	],
+	'text'  => './/div[@class="text"]'
+])->fromHtml();
+
+Assert::same($m($html), [
+	['title' => 'article1', 'url' => 'url1', 'text' => 'text1'],
+	['title' => 'article2', 'url' => 'url2', 'text' => 'text2'],
+	['title' => 'article3', 'url' => 'url3', 'text' => 'text3'],
+	['title' => 'article4', 'url' => null, 'text' => 'text4'],
+]);
+
+
+$m = Matcher::multi('//div[@class="article"]', [
+	1 => 'h2'
+])->fromHtml();
+
+Assert::exception(function () use ($m, $html) {
+	return $m($html);
+}, '\Exception', '~^Cannot merge scalar value~');
+
+
+// mixed array/object flattening
+
+$m = Matcher::multi('//div[@class="article"]', (object) [
+	[
+		'title' => './h2',
+	],
+	'text'  => './/div[@class="text"]'
+])->fromHtml();
+
+Assert::equal($m($html), [
+	(object) ['title' => 'article1', 'text' => 'text1'],
+	(object) ['title' => 'article2', 'text' => 'text2'],
+	(object) ['title' => 'article3', 'text' => 'text3'],
+	(object) ['title' => 'article4', 'text' => 'text4'],
+]);
+
+
+$m = Matcher::multi('//div[@class="article"]', [
+	(object) [
+		'title' => './h2',
+	],
+	'text'  => './/div[@class="text"]'
+])->fromHtml();
+
+Assert::same($m($html), [
+	['title' => 'article1', 'text' => 'text1'],
+	['title' => 'article2', 'text' => 'text2'],
+	['title' => 'article3', 'text' => 'text3'],
+	['title' => 'article4', 'text' => 'text4'],
+]);
+
+
+$m = Matcher::multi('//div[@class="article"]', (object) [
+	(object) [
+		'title' => './h2',
+	],
+	'text'  => './/div[@class="text"]'
+])->fromHtml();
+
+Assert::equal($m($html), [
+	(object) ['title' => 'article1', 'text' => 'text1'],
+	(object) ['title' => 'article2', 'text' => 'text2'],
+	(object) ['title' => 'article3', 'text' => 'text3'],
+	(object) ['title' => 'article4', 'text' => 'text4'],
+]);
+
+
+
+$m = Matcher::multi('//div[@class="article"]', [
 	'titleData' => Matcher::single('h2', [
 		'title' => '.',
 		'url'   => './a/@href',

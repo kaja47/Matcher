@@ -278,7 +278,12 @@ class Matcher {
 
     foreach ($paths as $key => $val) {
       if (is_int($key)) { // merge into current level
-        $return = array_merge($return, Matcher::_evalPath($node, $val, $context)); // extracted value shoud be array
+        $x = Matcher::_evalPath($node, $val, $context);
+        if (is_scalar($x) || $x === null) {
+          throw new \Exception("Cannot merge scalar value" . (is_string($val) ? " produced by path `$val`" : "") . " Expected array or object.");
+        }
+        if (is_object($x)) $x = (array) $x;
+        $return = array_merge($return, $x);
 
       } else {
         $return[$key] = Matcher::_evalPath($node, $val, $context);
