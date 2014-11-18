@@ -19,51 +19,51 @@ Assert::same($m($html), "title");
 
 
 $m = Matcher::multi('//h2')->fromHtml();
-Assert::same($m($html), ['article1', 'article2', 'article3', 'article4']);
+Assert::same($m($html), array('article1', 'article2', 'article3', 'article4'));
 
 
-$m = Matcher::multi('//div[@class="article"]', [
+$m = Matcher::multi('//div[@class="article"]', array(
 	'title' => 'h2',
 	'url'   => 'h2/a/@href',
 	'text'  => './/div[@class="text"]'
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['title' => 'article1', 'url' => 'url1', 'text' => 'text1'],
-	['title' => 'article2', 'url' => 'url2', 'text' => 'text2'],
-	['title' => 'article3', 'url' => 'url3', 'text' => 'text3'],
-	['title' => 'article4', 'url' => null, 'text' => 'text4'],
-]);
+Assert::same($m($html), array(
+	array('title' => 'article1', 'url' => 'url1', 'text' => 'text1'),
+	array('title' => 'article2', 'url' => 'url2', 'text' => 'text2'),
+	array('title' => 'article3', 'url' => 'url3', 'text' => 'text3'),
+	array('title' => 'article4', 'url' => null, 'text' => 'text4'),
+));
 
 
-$m = Matcher::multi('//div[@class="article"]', (object) [
+$m = Matcher::multi('//div[@class="article"]', (object) array(
 	'title' => 'h2',
 	'url'   => 'h2/a/@href',
 	'text'  => './/div[@class="text"]'
-])->fromHtml();
+))->fromHtml();
 
-Assert::equal($m($html), [
-	(object) ['title' => 'article1', 'url' => 'url1', 'text' => 'text1'],
-	(object) ['title' => 'article2', 'url' => 'url2', 'text' => 'text2'],
-	(object) ['title' => 'article3', 'url' => 'url3', 'text' => 'text3'],
-	(object) ['title' => 'article4', 'url' => null, 'text' => 'text4'],
-]);
+Assert::equal($m($html), array(
+	(object) array('title' => 'article1', 'url' => 'url1', 'text' => 'text1'),
+	(object) array('title' => 'article2', 'url' => 'url2', 'text' => 'text2'),
+	(object) array('title' => 'article3', 'url' => 'url3', 'text' => 'text3'),
+	(object) array('title' => 'article4', 'url' => null, 'text' => 'text4'),
+));
 
 
-$m = Matcher::multi('//div[@class="article"]', [
+$m = Matcher::multi('//div[@class="article"]', array(
 	'title' => 'h2',
 	'tags'  => Matcher::multi('.//span[@class="tag"]'),
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['title' => 'article1', 'tags' => ['tag1', 'tag2', 'tag3']],
-	['title' => 'article2', 'tags' => ['tag4']],
-	['title' => 'article3', 'tags' => ['tag5', 'tag6']],
-	['title' => 'article4', 'tags' => []],
-]);
+Assert::same($m($html), array(
+	array('title' => 'article1', 'tags' => array('tag1', 'tag2', 'tag3')),
+	array('title' => 'article2', 'tags' => array('tag4')),
+	array('title' => 'article3', 'tags' => array('tag5', 'tag6')),
+	array('title' => 'article4', 'tags' => array()),
+));
 
 
-$m = Matcher::multi('//div[@class="article"]', [
+$m = Matcher::multi('//div[@class="article"]', array(
 	'title' => 'h2',
 	'url'   => Matcher::single('h2/a/@href')->map(function ($url) {
 		return $url ? 'http://example.com/'.$url : null;
@@ -75,30 +75,30 @@ $m = Matcher::multi('//div[@class="article"]', [
 			return null;
 		}
 	})
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['title' => 'article1', 'url' => 'http://example.com/url1', 'date' => strtotime('2000-01-01')],
-	['title' => 'article2', 'url' => 'http://example.com/url2', 'date' => strtotime('2001-01-01')],
-	['title' => 'article3', 'url' => 'http://example.com/url3', 'date' => strtotime('2002-01-01')],
-	['title' => 'article4', 'url' => null, 'date' => null],
-]);
+Assert::same($m($html), array(
+	array('title' => 'article1', 'url' => 'http://example.com/url1', 'date' => strtotime('2000-01-01')),
+	array('title' => 'article2', 'url' => 'http://example.com/url2', 'date' => strtotime('2001-01-01')),
+	array('title' => 'article3', 'url' => 'http://example.com/url3', 'date' => strtotime('2002-01-01')),
+	array('title' => 'article4', 'url' => null, 'date' => null),
+));
 
 
-$m = Matcher::multi('//div[@class="article"]', [
+$m = Matcher::multi('//div[@class="article"]', array(
 	'title' => 'h2',
 	'date' => Matcher::single('.//span[@class="date"]')
 		->regex('~published: (.*)~')
 		->first()
 		->map('strtotime'),
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['title' => 'article1', 'date' => strtotime('2000-01-01')],
-	['title' => 'article2', 'date' => strtotime('2001-01-01')],
-	['title' => 'article3', 'date' => strtotime('2002-01-01')],
-	['title' => 'article4', 'date' => false],
-]);
+Assert::same($m($html), array(
+	array('title' => 'article1', 'date' => strtotime('2000-01-01')),
+	array('title' => 'article2', 'date' => strtotime('2001-01-01')),
+	array('title' => 'article3', 'date' => strtotime('2002-01-01')),
+	array('title' => 'article4', 'date' => false),
+));
 
 
 // method first() can handle nulls
@@ -113,81 +113,81 @@ $m = Matcher::single('//span[@class="date"]')->regex('~wrong pattern: (?P<date>.
 Assert::same(null, $m($html));
 
 
-$m = Matcher::multi('//div[@class="article"]', [
+$m = Matcher::multi('//div[@class="article"]', array(
 	'title' => 'h2',
 	'id' => Matcher::single('@data-id')->asInt(),
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['title' => 'article1', 'id' => 1],
-	['title' => 'article2', 'id' => 2],
-	['title' => 'article3', 'id' => 3],
-	['title' => 'article4', 'id' => 4],
-]);
+Assert::same($m($html), array(
+	array('title' => 'article1', 'id' => 1),
+	array('title' => 'article2', 'id' => 2),
+	array('title' => 'article3', 'id' => 3),
+	array('title' => 'article4', 'id' => 4),
+));
 
 
-$m = Matcher::multi('//div[@class="article"]', [
+$m = Matcher::multi('//div[@class="article"]', array(
 	'title'   => 'h2',
 	'tags'    => Matcher::count('.//span[@class="tag"]'),
 	'hasTags' => Matcher::has('.//span[@class="tag"]'),
 	'hasTags2' => Matcher::multi('.//span[@class="tag"]')->map(function ($tags) { return count($tags) > 0; }),
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['title' => 'article1', 'tags' => 3, 'hasTags' => true,  'hasTags2' => true,],
-	['title' => 'article2', 'tags' => 1, 'hasTags' => true,  'hasTags2' => true,],
-	['title' => 'article3', 'tags' => 2, 'hasTags' => true,  'hasTags2' => true,],
-	['title' => 'article4', 'tags' => 0, 'hasTags' => false, 'hasTags2' => false],
-]);
+Assert::same($m($html), array(
+	array('title' => 'article1', 'tags' => 3, 'hasTags' => true,  'hasTags2' => true,),
+	array('title' => 'article2', 'tags' => 1, 'hasTags' => true,  'hasTags2' => true,),
+	array('title' => 'article3', 'tags' => 2, 'hasTags' => true,  'hasTags2' => true,),
+	array('title' => 'article4', 'tags' => 0, 'hasTags' => false, 'hasTags2' => false),
+));
 
 
-$m = Matcher::single([
+$m = Matcher::single(array(
 	'title' => '//h1',
 	'date'  => Matcher::constant('2014-01-01'),
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
+Assert::same($m($html), array(
 	'title' => 'title',
 	'date'  => '2014-01-01',
-]);
+));
 
 
 // flatten nesting
-$m = Matcher::multi('//div[@class="article"]', [
-	Matcher::single('h2', [
+$m = Matcher::multi('//div[@class="article"]', array(
+	Matcher::single('h2', array(
 		'title' => '.',
 		'url'   => './a/@href',
-	]),
+	)),
 	'text'  => './/div[@class="text"]'
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['title' => 'article1', 'url' => 'url1', 'text' => 'text1'],
-	['title' => 'article2', 'url' => 'url2', 'text' => 'text2'],
-	['title' => 'article3', 'url' => 'url3', 'text' => 'text3'],
-	['title' => 'article4', 'url' => null, 'text' => 'text4'],
-]);
+Assert::same($m($html), array(
+	array('title' => 'article1', 'url' => 'url1', 'text' => 'text1'),
+	array('title' => 'article2', 'url' => 'url2', 'text' => 'text2'),
+	array('title' => 'article3', 'url' => 'url3', 'text' => 'text3'),
+	array('title' => 'article4', 'url' => null, 'text' => 'text4'),
+));
 
 
-$m = Matcher::multi('//div[@class="article"]', [
-	[
+$m = Matcher::multi('//div[@class="article"]', array(
+	array(
 		'title' => './h2',
 		'url'   => './h2/a/@href',
-	],
+	),
 	'text'  => './/div[@class="text"]'
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['title' => 'article1', 'url' => 'url1', 'text' => 'text1'],
-	['title' => 'article2', 'url' => 'url2', 'text' => 'text2'],
-	['title' => 'article3', 'url' => 'url3', 'text' => 'text3'],
-	['title' => 'article4', 'url' => null, 'text' => 'text4'],
-]);
+Assert::same($m($html), array(
+	array('title' => 'article1', 'url' => 'url1', 'text' => 'text1'),
+	array('title' => 'article2', 'url' => 'url2', 'text' => 'text2'),
+	array('title' => 'article3', 'url' => 'url3', 'text' => 'text3'),
+	array('title' => 'article4', 'url' => null, 'text' => 'text4'),
+));
 
 
-$m = Matcher::multi('//div[@class="article"]', [
+$m = Matcher::multi('//div[@class="article"]', array(
 	1 => 'h2'
-])->fromHtml();
+))->fromHtml();
 
 Assert::exception(function () use ($m, $html) {
 	return $m($html);
@@ -196,137 +196,137 @@ Assert::exception(function () use ($m, $html) {
 
 // mixed array/object flattening
 
-$m = Matcher::multi('//div[@class="article"]', (object) [
-	[
+$m = Matcher::multi('//div[@class="article"]', (object) array(
+	array(
 		'title' => './h2',
-	],
+	),
 	'text'  => './/div[@class="text"]'
-])->fromHtml();
+))->fromHtml();
 
-Assert::equal($m($html), [
-	(object) ['title' => 'article1', 'text' => 'text1'],
-	(object) ['title' => 'article2', 'text' => 'text2'],
-	(object) ['title' => 'article3', 'text' => 'text3'],
-	(object) ['title' => 'article4', 'text' => 'text4'],
-]);
+Assert::equal($m($html), array(
+	(object) array('title' => 'article1', 'text' => 'text1'),
+	(object) array('title' => 'article2', 'text' => 'text2'),
+	(object) array('title' => 'article3', 'text' => 'text3'),
+	(object) array('title' => 'article4', 'text' => 'text4'),
+));
 
 
-$m = Matcher::multi('//div[@class="article"]', [
-	(object) [
+$m = Matcher::multi('//div[@class="article"]', array(
+	(object) array(
 		'title' => './h2',
-	],
+	),
 	'text'  => './/div[@class="text"]'
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['title' => 'article1', 'text' => 'text1'],
-	['title' => 'article2', 'text' => 'text2'],
-	['title' => 'article3', 'text' => 'text3'],
-	['title' => 'article4', 'text' => 'text4'],
-]);
+Assert::same($m($html), array(
+	array('title' => 'article1', 'text' => 'text1'),
+	array('title' => 'article2', 'text' => 'text2'),
+	array('title' => 'article3', 'text' => 'text3'),
+	array('title' => 'article4', 'text' => 'text4'),
+));
 
 
-$m = Matcher::multi('//div[@class="article"]', (object) [
-	(object) [
+$m = Matcher::multi('//div[@class="article"]', (object) array(
+	(object) array(
 		'title' => './h2',
-	],
+	),
 	'text'  => './/div[@class="text"]'
-])->fromHtml();
+))->fromHtml();
 
-Assert::equal($m($html), [
-	(object) ['title' => 'article1', 'text' => 'text1'],
-	(object) ['title' => 'article2', 'text' => 'text2'],
-	(object) ['title' => 'article3', 'text' => 'text3'],
-	(object) ['title' => 'article4', 'text' => 'text4'],
-]);
+Assert::equal($m($html), array(
+	(object) array('title' => 'article1', 'text' => 'text1'),
+	(object) array('title' => 'article2', 'text' => 'text2'),
+	(object) array('title' => 'article3', 'text' => 'text3'),
+	(object) array('title' => 'article4', 'text' => 'text4'),
+));
 
 
 
-$m = Matcher::multi('//div[@class="article"]', [
-	'titleData' => Matcher::single('h2', [
+$m = Matcher::multi('//div[@class="article"]', array(
+	'titleData' => Matcher::single('h2', array(
 		'title' => '.',
 		'url'   => './a/@href',
-	]),
+	)),
 	'text'  => './/div[@class="text"]'
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['titleData' => ['title' => 'article1', 'url' => 'url1'], 'text' => 'text1'],
-	['titleData' => ['title' => 'article2', 'url' => 'url2'], 'text' => 'text2'],
-	['titleData' => ['title' => 'article3', 'url' => 'url3'], 'text' => 'text3'],
-	['titleData' => ['title' => 'article4', 'url' => null],   'text' => 'text4'],
-]);
+Assert::same($m($html), array(
+	array('titleData' => array('title' => 'article1', 'url' => 'url1'), 'text' => 'text1'),
+	array('titleData' => array('title' => 'article2', 'url' => 'url2'), 'text' => 'text2'),
+	array('titleData' => array('title' => 'article3', 'url' => 'url3'), 'text' => 'text3'),
+	array('titleData' => array('title' => 'article4', 'url' => null),   'text' => 'text4'),
+));
 
 
-$m = Matcher::multi('//div[@class="article"]', [
-	'titleData' => [
+$m = Matcher::multi('//div[@class="article"]', array(
+	'titleData' => array(
 		'title' => 'h2',
 		'url'   => 'h2/a/@href',
-	],
+	),
 	'text'  => './/div[@class="text"]'
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['titleData' => ['title' => 'article1', 'url' => 'url1'], 'text' => 'text1'],
-	['titleData' => ['title' => 'article2', 'url' => 'url2'], 'text' => 'text2'],
-	['titleData' => ['title' => 'article3', 'url' => 'url3'], 'text' => 'text3'],
-	['titleData' => ['title' => 'article4', 'url' => null],   'text' => 'text4'],
-]);
+Assert::same($m($html), array(
+	array('titleData' => array('title' => 'article1', 'url' => 'url1'), 'text' => 'text1'),
+	array('titleData' => array('title' => 'article2', 'url' => 'url2'), 'text' => 'text2'),
+	array('titleData' => array('title' => 'article3', 'url' => 'url3'), 'text' => 'text3'),
+	array('titleData' => array('title' => 'article4', 'url' => null),   'text' => 'text4'),
+));
 
 
 // orElse
 
-$m = Matcher::multi('//div[@class="article"]', [
+$m = Matcher::multi('//div[@class="article"]', array(
 	'url' => Matcher::single('h2/a/@href')->orElse('@data-id')
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['url' => 'url1'],
-	['url' => 'url2'],
-	['url' => 'url3'],
-	['url' => '4'],
-]);
+Assert::same($m($html), array(
+	array('url' => 'url1'),
+	array('url' => 'url2'),
+	array('url' => 'url3'),
+	array('url' => '4'),
+));
 
 
-$m = Matcher::multi('//div[@class="article"]', [
+$m = Matcher::multi('//div[@class="article"]', array(
 	'url' => Matcher::single('h2/a/@href')->orElse('@data-id')->map(function ($x) {
 		return 'http://example.com/'.$x;
 	})
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['url' => 'http://example.com/url1'],
-	['url' => 'http://example.com/url2'],
-	['url' => 'http://example.com/url3'],
-	['url' => 'http://example.com/4'],
-]);
+Assert::same($m($html), array(
+	array('url' => 'http://example.com/url1'),
+	array('url' => 'http://example.com/url2'),
+	array('url' => 'http://example.com/url3'),
+	array('url' => 'http://example.com/4'),
+));
 
 
-$m = Matcher::multi("//table//tr[position() > 1]", [
+$m = Matcher::multi("//table//tr[position() > 1]", array(
 	'name'  => 1,
 	'score' => Matcher::single(2)->asInt(),
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m(file_get_contents(__DIR__ . '/test-table.html')), [
-	['name' => 'A. A.', 'score' =>  2],
-	['name' => 'B. B.', 'score' => 10],
-]);
+Assert::same($m(file_get_contents(__DIR__ . '/test-table.html')), array(
+	array('name' => 'A. A.', 'score' =>  2),
+	array('name' => 'B. B.', 'score' => 10),
+));
 
 
 // everything is a function
-$m = Matcher::multi('//div[@class="article"]', [
+$m = Matcher::multi('//div[@class="article"]', array(
 	'title' => 'h2',
 	'id'    => function (\DOMElement $node) {
 		return (int) $node->getAttribute('data-id');
 	},
-])->fromHtml();
+))->fromHtml();
 
-Assert::same($m($html), [
-	['title' => 'article1', 'id' => 1],
-	['title' => 'article2', 'id' => 2],
-	['title' => 'article3', 'id' => 3],
-	['title' => 'article4', 'id' => 4],
-]);
+Assert::same($m($html), array(
+	array('title' => 'article1', 'id' => 1),
+	array('title' => 'article2', 'id' => 2),
+	array('title' => 'article3', 'id' => 3),
+	array('title' => 'article4', 'id' => 4),
+));
 
 
 $matcher = Matcher::single('//h1');
@@ -395,9 +395,9 @@ $atomXml = trim('
 ');
 
 $m = Matcher::multi('//atom:entry/atom:title')->fromXml(new MatcherContext(
-	null, [
+	null, array(
 		'atom' => 'http://www.w3.org/2005/Atom',
-	]
+	)
 ));
 
-Assert::same($m($atomXml), ['Atom-Powered Robots Run Amok']);
+Assert::same($m($atomXml), array('Atom-Powered Robots Run Amok'));

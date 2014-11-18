@@ -87,16 +87,16 @@ function runTests($asDom) {
 	test($xml1, M::single('//d', 1)->fromXml(null, $asDom), '2');
 	test($xml1, M::single('//d', 3)->fromXml(null, $asDom), null);
 	test($xml1, M::single('//d/*[1]')->fromXml(null, $asDom), '2');
-	test($xml1, M::single([
+	test($xml1, M::single(array(
 		'k1' => M::single('//b')->withExtractor('Atrox\\Matcher::_nodeToString'),
 		'k2' => M::single('//b')->withExtractor(M::normalize),
-	])->withExtractor(M::identity)->fromXml(null, $asDom), [
+	))->withExtractor(M::identity)->fromXml(null, $asDom), array(
 		'k1' => '  test  ',
 		'k2' => 'test',
-	]);
+	));
 
 	test($xml2, M::single('//a')->fromXml(M::oneline, $asDom), "a1.b1 a1.b2 a1.x.b");
-	test($xml2, M::single(['x' => '//a[@id="1"]/@id', 'y' => '//a[@id="2"]/@id'])->fromXml(M::oneline, $asDom),['x' => '1', 'y' => '2']);
+	test($xml2, M::single(array('x' => '//a[@id="1"]/@id', 'y' => '//a[@id="2"]/@id'))->fromXml(M::oneline, $asDom),array('x' => '1', 'y' => '2'));
 	test($xml2, M::single('//a', 'b')->fromXml(M::oneline, $asDom), "a1.b1");
 	test($xml2, M::single('//a', 'b')->fromXml(M::oneline, $asDom), "a1.b1");
 	test($xml2, M::single('//a', './b')->fromXml(M::oneline, $asDom), "a1.b1");
@@ -104,22 +104,22 @@ function runTests($asDom) {
 	test($xml2, M::single('//a[@id="2"]', 'b[2]', 'b')->fromXml(M::oneline, $asDom), 'a2.b2.b1');
 	test($xml2, M::single('//a[@id="2"]/b/b')->fromXml(M::oneline, $asDom), 'a2.b2.b1');
 	test($xml2, M::single('//a[@id="2"]', './/b[@id="2"]')->fromXml(M::oneline, $asDom), 'a2.b2 a2.b2.b1');
-	test($xml2, M::single('//a[@id="2"]', ['x' => './/b[@id="1"]', 'y' => './/b[@id="2"]'])->fromXml(M::oneline, $asDom), ['x' => 'a2.b1', 'y' => 'a2.b2 a2.b2.b1']);
-	test($xml2, M::single([
+	test($xml2, M::single('//a[@id="2"]', array('x' => './/b[@id="1"]', 'y' => './/b[@id="2"]'))->fromXml(M::oneline, $asDom), array('x' => 'a2.b1', 'y' => 'a2.b2 a2.b2.b1'));
+	test($xml2, M::single(array(
 		'x' => M::single('//a[1]', './*/b'),
 		'y' => M::single('//a[2]', './*/b')
-	])->fromXml(M::oneline, $asDom), ['x' => 'a1.x.b', 'y' => 'a2.b2.b1']);
-	test($xml2, M::single([
-		'x' => M::single('//a[1]', $mmm = ['x' => './b[@id="1"]', 'y' => './b[@id="2"]']),
+	))->fromXml(M::oneline, $asDom), array('x' => 'a1.x.b', 'y' => 'a2.b2.b1'));
+	test($xml2, M::single(array(
+		'x' => M::single('//a[1]', $mmm = array('x' => './b[@id="1"]', 'y' => './b[@id="2"]')),
 		'y' => M::single('//a[3]', $mmm),
-	])->fromXml(M::oneline, $asDom), ['x' => ['x' => 'a1.b1', 'y' => 'a1.b2' ], 'y' => ['x' => 'a3.b1', 'y' => 'a3.b2.x']]);
-	test($xml2, M::single(['x' => '//a[@id="1"]/@id', 'y' => function () { return 47; }])->fromXml(M::oneline, $asDom), ['x' => '1', 'y' => 47]);
-	test($xml2, M::single(['x' => '//a[@id="1"]/@id', 'y' => M::constant(47)])->fromXml(M::oneline, $asDom), ['x' => '1', 'y' => 47]);
+	))->fromXml(M::oneline, $asDom), array('x' => array('x' => 'a1.b1', 'y' => 'a1.b2' ), 'y' => array('x' => 'a3.b1', 'y' => 'a3.b2.x')));
+	test($xml2, M::single(array('x' => '//a[@id="1"]/@id', 'y' => function () { return 47; }))->fromXml(M::oneline, $asDom), array('x' => '1', 'y' => 47));
+	test($xml2, M::single(array('x' => '//a[@id="1"]/@id', 'y' => M::constant(47)))->fromXml(M::oneline, $asDom), array('x' => '1', 'y' => 47));
 
 	test($xml2, M::multi('//a')->map('count')->fromXml(M::oneline, $asDom), 3);
 	test($xml2, M::multi('//a')->fromXml(M::oneline, $asDom)->map('count'), 3);
-	test($xml2, M::multi('//a', 'b/@n')->fromXml(null, $asDom), [ ['1', '2'], ['4', '5'], ['7', '8'] ]);
-	test($xml2, M::multi('//a', M::multi('*', 'b/@n'))->fromXml(null, $asDom), [ [ [], [], ['3'] ], [ [], ['6'] ], [ [], [] ] ]);
+	test($xml2, M::multi('//a', 'b/@n')->fromXml(null, $asDom), array( array('1', '2'), array('4', '5'), array('7', '8') ));
+	test($xml2, M::multi('//a', M::multi('*', 'b/@n'))->fromXml(null, $asDom), array( array( array(), array(), array('3') ), array( array(), array('6') ), array( array(), array() ) ));
 	test($xml1, M::multi('/texts', 'e')->first()->first()->fromXml(M::oneline, $asDom), '1 2 3 4 5');
 	test($xml1, M::multi('/texts', M::single('e'))->first()->fromXml(M::oneline, $asDom), '1 2 3 4 5');
 
@@ -141,18 +141,18 @@ function runTests($asDom) {
 	</thread>
 	';
 
-	test($thread, M::single([
+	test($thread, M::single(array(
 		'op'      => M::single('//op',    $mmm = M::single('./@id')),
 		'replies' => M::multi('.//reply', $mmm),
-	])->fromXml(null, $asDom), ['op' => '1', 'replies' => ['1.1', '1.2']]);
-	test($thread, M::single([
+	))->fromXml(null, $asDom), array('op' => '1', 'replies' => array('1.1', '1.2')));
+	test($thread, M::single(array(
 		'op'      => M::single('//op',    $mmm = M::single('./@id')),
 		'replies' => M::multi('.//reply', $mmm)
-	])->fromXml(null, $asDom), ['op' => '1', 'replies' => ['1.1', '1.2']]);
-	test($thread, M::single([
-		'op'      => M::single('//op',    $mmm = ['id' => './@id']),
+	))->fromXml(null, $asDom), array('op' => '1', 'replies' => array('1.1', '1.2')));
+	test($thread, M::single(array(
+		'op'      => M::single('//op',    $mmm = array('id' => './@id')),
 		'replies' => M::multi('.//reply', $mmm)
-	])->fromXml(null, $asDom), ['op' => ['id' => '1'], 'replies' => [['id' => '1.1'], ['id' => '1.2']]]);
+	))->fromXml(null, $asDom), array('op' => array('id' => '1'), 'replies' => array(array('id' => '1.1'), array('id' => '1.2'))));
 
 
 	Assert::exception(function () use ($asDom) {
@@ -185,15 +185,15 @@ function runTests($asDom) {
 	</feed>
 	');
 
-	$atomMatcher = M::multi('/atom:feed/atom:entry', [
+	$atomMatcher = M::multi('/atom:feed/atom:entry', array(
 		'title' => './atom:title',
 		'id'    => './atom:id',
-	])->fromXml(new MatcherContext(null, ['atom' => 'http://www.w3.org/2005/Atom']), $asDom);
+	))->fromXml(new MatcherContext(null, array('atom' => 'http://www.w3.org/2005/Atom')), $asDom);
 
-	$expected = [[
+	$expected = array(array(
 		'title' => 'Atom-Powered Robots Run Amok',
 		'id'    => 'urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a',
-	]];
+	));
 
 	test($atomXml, $atomMatcher, $expected);
 
