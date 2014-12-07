@@ -26,11 +26,12 @@ class Matcher {
   function __invoke() { return call_user_func_array($this->f, func_get_args()); }
 
 
+
   /** @param string|array|int|Closure|Matcher $path */
   static function multi($path, $next = null) {
     if (is_string($path)) {
       $m = new Matcher(function($node, $context = null) use ($path) {
-        if ($context === null) $context = new MatcherContext(null);// in case this is top level matcher
+        $context = Matcher::inventContext($context);
         return array_map($context->getExtractor(), $context->xpathAll($node, $path));
       }, $path);
     } else {
@@ -162,7 +163,8 @@ class Matcher {
 
   function withExtractor($extractor) {
     $self = $this->f;
-    return new Matcher(function ($node, $context) use ($self, $extractor) { // outer extractor passed as argument is thrown away
+    return new Matcher(function ($node, $context = null) use ($self, $extractor) { // outer extractor passed as argument is thrown away
+      $context = Matcher::inventContext($context);
       return $self($node, $context->withExtractor($extractor));
     });
   }
@@ -178,6 +180,7 @@ class Matcher {
   function map($f) {
     $self = $this->f;
     return new Matcher(function ($node, $context = null) use ($self, $f) {
+      $context = Matcher::inventContext($context);
       return call_user_func($f, $self($node, $context));
     });
   }
@@ -188,7 +191,8 @@ class Matcher {
     * apply function $f to the result */
   function mapRaw($f) {
     $self = $this->f;
-    return new Matcher(function ($node, $context) use ($self, $f) {
+    return new Matcher(function ($node, $context = null) use ($self, $f) {
+      $context = Matcher::inventContext($context);
       return $f($self($node, $context->withExtractor(Matcher::identity)), $context);
     });
   }
@@ -196,7 +200,8 @@ class Matcher {
 
   function orElse($m) {
     $self = $this->f;
-    return new Matcher(function ($node, $context) use ($self, $m) {
+    return new Matcher(function ($node, $context = null) use ($self, $m) {
+      $context = Matcher::inventContext($context);
       return $self($node, $context) ?: Matcher::_evalPath($node, $m, $context);
     });
   }
@@ -238,6 +243,16 @@ class Matcher {
       }
     };
     return $this->map($f);
+  }
+
+
+  /**
+   * Create default MatcherContext in case nothing is passed as argument.
+   * This can happen when current matcher is top lever matcher.
+   * @internal
+   */
+  static function inventContext(MatcherContext $context = null) {
+    return ($context === null) ? new MatcherContext(null) : $context;
   }
 
 
