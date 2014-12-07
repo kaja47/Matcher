@@ -176,7 +176,8 @@ class Matcher {
     });
   }
 
-  /** Applies function $f to result of matcher (*after* extractor) */
+  /** Creates new Macther that applies function $f to the result of $this
+    * matcher *after* extraction. */
   function map($f) {
     $self = $this->f;
     return new Matcher(function ($node, $context = null) use ($self, $f) {
@@ -185,10 +186,11 @@ class Matcher {
     });
   }
 
+  /** Alias for map method. */
   function andThen($f) { return $this->map($f); }
 
-  /** Return new Matcher that executes $this matcher without extraction and then
-    * apply function $f to the result */
+  /** Creates new Matcher that executes $this matcher without extraction and
+    * then applies function $f to the result */
   function mapRaw($f) {
     $self = $this->f;
     return new Matcher(function ($node, $context = null) use ($self, $f) {
@@ -198,6 +200,8 @@ class Matcher {
   }
 
 
+  /** Creates new Matcher that executes $this matcher and if nothing is found
+    * (results is null or empty array), executes second matcher. */
   function orElse($m) {
     $self = $this->f;
     return new Matcher(function ($node, $context = null) use ($self, $m) {
@@ -207,8 +211,13 @@ class Matcher {
   }
 
 
+  /** Creates new matcher that converts result of $this matcher to integer */
   function asInt()   { return $this->map('intval'); }
+
+  /** Creates new matcher that converts result of $this matcher to float */
   function asFloat() { return $this->map('floatval'); }
+
+  /** Creates new matcher that converts result of $this matcher to integer */
   function first()   {
     return $this->map(function ($xs) {
       return ($xs === null || (is_array($xs) && empty($xs))) ? null : reset($xs);
@@ -246,11 +255,9 @@ class Matcher {
   }
 
 
-  /**
-   * Create default MatcherContext in case nothing is passed as argument.
-   * This can happen when current matcher is top lever matcher.
-   * @internal
-   */
+  /** Creates the default MatcherContext in case nothing is passed as an
+    * argument. This can happen when current matcher is the top level matcher.
+    * @internal */
   static function inventContext(MatcherContext $context = null) {
     return ($context === null) ? new MatcherContext(null) : $context;
   }
