@@ -69,8 +69,22 @@ class Matcher {
   }
 
 
+  private static function checkInput($str, $type) {
+    if (!is_string($str)) {
+      $type = is_object($str) ? get_class($str) : gettype($str);
+      $hint = '';
+      if ($str instanceof \DOMDocument || $str instanceof \SimpleXMLElement) {
+        $hint = ' When matching on DOM objects you don\'t need to call `fromHtml` or `fromXml`';
+      }
+      throw new \RuntimeException("Can't create DOM document: string expected, $type given.$hint");
+    }
 
-  static function checkXml($status, $errmsg) {
+    if ($str === '') {
+      throw new \RuntimeException("Invalid $type document: empty string");
+    }
+  }
+
+  private static function checkXml($status, $errmsg) {
     if ($status === false) {
       $error = libxml_get_last_error();
       if ($error && $error->message) {
@@ -82,9 +96,7 @@ class Matcher {
   }
 
   static function loadHTML($html, $asDom = true) {
-    if ($html === '') {
-      throw new \RuntimeException("Invalid HTML document: empty string");
-    }
+    self::checkInput($html, 'HTML');
 
     $useIntErr = libxml_use_internal_errors(true);
     $dom = new \DOMDocument;
@@ -106,9 +118,7 @@ class Matcher {
   }
 
   static function loadXML($xml, $asDom = true) {
-    if ($xml === '') {
-      throw new \RuntimeException("Invalid XML document: empty string");
-    }
+    self::checkInput($xml, 'XML');
 
     if ($asDom) {
       $useIntErr = libxml_use_internal_errors(true);

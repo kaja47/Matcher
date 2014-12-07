@@ -401,3 +401,22 @@ $m = Matcher::multi('//atom:entry/atom:title')->fromXml(new MatcherContext(
 ));
 
 Assert::same($m($atomXml), array('Atom-Powered Robots Run Amok'));
+
+
+
+// error messages when matching with `fromHtml` on DOM document 
+
+$dom = new \DOMDocument;
+$dom->loadHTML($html);
+
+$m = Matcher::single('//h1')->fromHtml();
+
+Assert::exception(function () use ($m, $dom) {
+	return $m($dom);
+}, '\RuntimeException', '~^Can\'t create DOM document~');
+
+$m = Matcher::single('//h1')->fromXml();
+
+Assert::exception(function () use ($m, $dom) {
+	return $m($dom);
+}, '\RuntimeException', '~^Can\'t create DOM document~');
