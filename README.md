@@ -5,7 +5,7 @@ Atrox\Matcher
 [![Build Status](https://travis-ci.org/kaja47/Matcher.svg?branch=master)](https://travis-ci.org/kaja47/Matcher)
 [![License](https://poser.pugx.org/atrox/Matcher/license.svg)](https://packagist.org/packages/atrox/Matcher)
 
-Matcher - powerful tool for extracting data from XML and HTML using XPath and
+Matcher - powerful tool for extracting data from XML and HTML using [XPath](https://en.wikipedia.org/wiki/XPath) and
 pure magic.
 
 
