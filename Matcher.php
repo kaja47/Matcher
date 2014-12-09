@@ -277,8 +277,11 @@ class Matcher {
 
 
   /** @internal */
-  static function _evalPath($node, $path, $context) { // todo
-    if ($path instanceof Matcher || $path instanceof \Closure) { // key => multipath
+  static function _evalPath($node, $path, $context) {
+    if ($node === null) { // nothing is passed in current matcher, this happens when p₁ in single(p₁, p₂) matches nothing
+      return null;
+
+    } else if ($path instanceof Matcher || $path instanceof \Closure) { // key => multipath
       return $path($node, $context);
 
     } elseif (is_array($path) || is_object($path)) { // key => array(paths)
@@ -304,8 +307,9 @@ class Matcher {
   }
 
 
-  /** @internal **/
-  static function _extractPaths($node, $paths, $context) {
+  /** Performs matching on paths specified by arrays or objects.
+    * @internal **/
+  private static function _extractPaths($node, $paths, $context) {
     $return = array();
 
     foreach ($paths as $key => $val) {
