@@ -15,6 +15,9 @@
 	"require": {
 		"php": ">=5.3.0"
 	},
+	"suggest": {
+		"symfony/css-selector": "Allows CSS selectors."
+	},
 	"require-dev": {
 		"nette/tester": "~1.1"
 	},

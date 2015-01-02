@@ -298,7 +298,7 @@ class Matcher {
       }
 
     } elseif (is_int($path)) { // key => position of child element
-      $ns = $context->xpathAll($node, "*[$path]");
+      $ns = $context->position($node, $path);
       return empty($ns) ? null : call_user_func($context->getExtractor(), reset($ns));
 
     } else {
@@ -344,6 +344,10 @@ class MatcherContext {
     return new self($extractor, $this->namespaces);
   }
 
+  function position($node, $pos) {
+    return $this->xpathAll($node, "*[$pos]");
+  }
+
   function xpathAll($node, $path) {
     if ($node instanceof \DOMNode) {
       $dom = ($node instanceof \DOMDocument) ? $node : $node->ownerDocument;
@@ -367,5 +371,21 @@ class MatcherContext {
 
   function getExtractor() {
     return $this->extractor ?: Matcher::toString; // Use outer extractor passed as argument, if it's null, use default extractor
+  }
+}
+
+
+class CssMatcherContext extends MatcherContext {
+  function __construct($extractor = null) {
+    parent::__construct($extractor);
+  }
+
+  function withExtractor($extractor) {
+    return new self($extractor);
+  }
+
+  function xpathAll($node, $path) {
+    $path = \Symfony\Component\CssSelector\CssSelector::toXpath($path);
+    return parent::xpathAll($node, $path);
   }
 }
