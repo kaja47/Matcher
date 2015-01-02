@@ -8,6 +8,8 @@ Atrox\Matcher
 Matcher - powerful tool for extracting data from XML and HTML using [XPath](https://en.wikipedia.org/wiki/XPath) and
 pure magic.
 
+[Why was Matcher made (czech)](http://funkcionalne.cz/2014/05/php-dom-simplexml-a-matcher/), [XPath intro (czech)](http://funkcionalne.cz/2015/01/xpath-co-proc-a-hlavne-jak/)
+
 
 Examples:
 ---------
