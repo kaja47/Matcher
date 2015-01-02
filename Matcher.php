@@ -50,7 +50,7 @@ class Matcher {
     $args = func_get_args();
     $path = array_shift($args);
     $m = new Matcher(function ($node, $context = null) use ($path) {
-      if ($context === null) $context = new MatcherContext(null); // in case this is top level matcher
+      $context = Matcher::inventContext($context);
       return Matcher::_evalPath($node, $path, $context);
     }, $path);
 
@@ -335,7 +335,7 @@ class Matcher {
 class MatcherContext {
   private $extractor, $namespaces;
 
-  function __construct($extractor, $namespaces = array()) {
+  function __construct($extractor = null, $namespaces = array()) {
     $this->extractor = $extractor;
     $this->namespaces = $namespaces;
   }
