@@ -333,15 +333,16 @@ class Matcher {
 
 
 class MatcherContext {
-  private $extractor, $namespaces;
+  private $extractor, $namespaces, $pathTranslator;
 
-  function __construct($extractor = null, $namespaces = array()) {
+  function __construct($extractor = null, $namespaces = array(), $pathTranslator = null) {
     $this->extractor = $extractor;
     $this->namespaces = $namespaces;
+    $this->pathTranslator = $pathTranslator;
   }
 
   function withExtractor($extractor) {
-    return new self($extractor, $this->namespaces);
+    return new self($extractor, $this->namespaces, $this->pathTranslator);
   }
 
   function position($node, $pos) {
@@ -349,6 +350,10 @@ class MatcherContext {
   }
 
   function xpathAll($node, $path) {
+    if ($this->pathTranslator !== null) {
+      $path = call_user_func($this->pathTranslator, $path);
+    }
+
     if ($node instanceof \DOMNode) {
       $dom = ($node instanceof \DOMDocument) ? $node : $node->ownerDocument;
       $xpath = new \DOMXPath($dom);
@@ -377,15 +382,6 @@ class MatcherContext {
 
 class CssMatcherContext extends MatcherContext {
   function __construct($extractor = null) {
-    parent::__construct($extractor);
-  }
-
-  function withExtractor($extractor) {
-    return new self($extractor);
-  }
-
-  function xpathAll($node, $path) {
-    $path = \Symfony\Component\CssSelector\CssSelector::toXpath($path);
-    return parent::xpathAll($node, $path);
+    parent::__construct($extractor, array(), 'Symfony\Component\CssSelector\CssSelector::toXpath');
   }
 }
