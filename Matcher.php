@@ -302,7 +302,7 @@ class Matcher {
       return empty($ns) ? null : call_user_func($context->getExtractor(), reset($ns));
 
     } else {
-      throw new \Exception("Invalid path. Expected string, int, array, stdClass object, Matcher object of function, ".gettype($val)." given");
+      throw new \Exception("Invalid path. Expected string, int, array, stdClass object, Matcher object of function, ".gettype($path)." given");
     }
   }
 
@@ -369,7 +369,7 @@ class MatcherContext {
       return $node->xpath($path);
     } else {
       $hint = (gettype($node) === 'string') ? ' Maybe you forgot to call `fromXml` or `fromHtml` on your matcher.' : '';
-      $type = is_object($str) ? get_class($str) : gettype($str);
+      $type = is_object($node) ? get_class($node) : gettype($node);
       throw new \Exception("Cannot execute query. DOMNode or SimpleXMLElement expected, $type given.$hint");
     }
   }
