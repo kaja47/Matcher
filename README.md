@@ -11,6 +11,16 @@ pure magic.
 [Why was Matcher made (czech)](http://funkcionalne.cz/2014/05/php-dom-simplexml-a-matcher/), [XPath intro (czech)](http://funkcionalne.cz/2015/01/xpath-co-proc-a-hlavne-jak/)
 
 
+Installation:
+-------------
+
+Usage of Matcher is very easy. Install it using [Composer](https://getcomposer.org/):
+
+```
+composer require atrox/matcher
+```
+
+
 Examples:
 ---------
 
