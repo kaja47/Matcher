@@ -19,7 +19,8 @@
 		"symfony/css-selector": "Allows CSS selectors."
 	},
 	"require-dev": {
-		"nette/tester": "~1.1"
+		"nette/tester": "~1.1",
+		"masterminds/html5": "2.*"
 	},
 	"autoload": {
 		"psr-4": {

@@ -127,3 +127,17 @@ result:
   ...
 ]
 ```
+
+Use with external parsers:
+--------------------------
+
+Because Matcher is internally working with [DOMDocument](http://php.net/manual/en/class.domdocument.php) or [SimpleXML](http://php.net/manual/en/book.simplexml.php) objects it's
+possible to use it with external HTML/XML parsers such as [html5-php](https://github.com/Masterminds/html5-php).
+
+```php
+$html5 = new Masterminds\HTML5(['disable_html_ns' => true]);
+$dom = $html5->loadHTML($html);
+
+$m = Matcher::single('//h1');
+$title = $m($dom);
+```
