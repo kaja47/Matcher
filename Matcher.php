@@ -360,7 +360,15 @@ class MatcherContext {
       foreach ($this->namespaces as $prefix => $url) {
         $xpath->registerNamespace($prefix, $url);
       }
+
+      set_error_handler(function ($severity, $message, $file) use ($path) {
+        if ($message === 'DOMXPath::evaluate(): Invalid expression') $message .= ' ' . $path;
+        restore_error_handler();
+        throw new \Exception($message);
+      });
       $res = $xpath->evaluate($path, $node);
+      restore_error_handler();
+
       return (is_scalar($res)) ? $res : iterator_to_array($res);
     } else if ($node instanceof \SimpleXMLElement) {
       foreach ($this->namespaces as $prefix => $url) {

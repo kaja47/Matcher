@@ -420,3 +420,12 @@ $m = Matcher::single('//h1')->fromXml();
 Assert::exception(function () use ($m, $dom) {
 	return $m($dom);
 }, '\RuntimeException', '~^Can\'t create DOM document~');
+
+
+
+// exception thrown in case of bad XPath expression
+
+Assert::exception(function() use ($html) {
+	$m = Matcher::single('//h1[')->fromHtml();
+	$m($html);
+}, 'Exception');
