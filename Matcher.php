@@ -70,7 +70,7 @@ class Matcher {
   }
 
 
-  private static function checkInput($str, $type) {
+  private static function checkInput($str, $kind) {
     if (!is_string($str)) {
       $type = is_object($str) ? get_class($str) : gettype($str);
       $hint = '';
@@ -81,7 +81,7 @@ class Matcher {
     }
 
     if ($str === '') {
-      throw new \RuntimeException("Invalid $type document: empty string");
+      throw new \RuntimeException("Invalid $kind document: empty string");
     }
   }
 
