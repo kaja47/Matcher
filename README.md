@@ -5,16 +5,15 @@ Atrox\Matcher
 [![Build Status](https://travis-ci.org/kaja47/Matcher.svg?branch=master)](https://travis-ci.org/kaja47/Matcher)
 [![License](https://poser.pugx.org/atrox/Matcher/license.svg)](https://packagist.org/packages/atrox/Matcher)
 
-Matcher - powerful tool for extracting data from XML and HTML using [XPath](https://en.wikipedia.org/wiki/XPath) and
-pure magic.
+Matcher - powerful tool for extracting data from XML and HTML using [XPath](https://en.wikipedia.org/wiki/XPath) and pure magic.
 
-[Why was Matcher made (czech)](http://funkcionalne.cz/2014/05/php-dom-simplexml-a-matcher/), [XPath intro (czech)](http://funkcionalne.cz/2015/01/xpath-co-proc-a-hlavne-jak/)
+[Why was Matcher made (czech)](https://funkcionalne.k47.cz/2014/05/php-dom-simplexml-a-matcher.html), [XPath intro (czech)](https://funkcionalne.k47.cz/2015/01/xpath-co-proc-a-hlavne-jak.html)
 
 
 Installation:
 -------------
 
-Usage of Matcher is very easy. Install it using [Composer](https://getcomposer.org/):
+Install Matcher using [Composer](https://getcomposer.org/):
 
 ```
 composer require atrox/matcher
@@ -25,8 +24,6 @@ Examples:
 ---------
 
 ```php
-<?php
-
 use Atrox\Matcher;
 
 $m = Matcher::multi('//div[@id="siteTable"]/div[contains(@class, "thing")]', [
@@ -51,8 +48,6 @@ $extractedData = $m($f);
 result:
 
 ```php
-<?php
-
 [
   [
     "id"    => "t3_1ep0c5",
@@ -78,8 +73,6 @@ result:
 Matchers can be arbitrarily chained and nested.
 
 ```php
-<?php
-
 $postMatcher = Matcher::single('.//div[@class="postInfo desktop"]', [
   'id'   => './input/@name',
   'name' => './span[@class="nameBlock"]/span[@class="name"]',
@@ -99,8 +92,6 @@ $extractedData = $m($f);
 result:
 
 ```php
-<?php
-
 [
   [
     "op" => [
@@ -110,15 +101,11 @@ result:
     ],
     "replies" => [
       [
-        "id"   => "481879323",
-        "name" => "WT Snacks",
-        "date" => "1369244544"
-      ],
-      [
         "id"   => "481879347",
         "name" => "moot",
         "date" => "1369244554"
-      ]
+      ],
+      ...
     ]
   ],
   [
